@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "338392055482",
+    "project_id": "ecommerce-strak",
+    "storage_bucket": "ecommerce-strak.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338392055482:android:ce53a0ca9f1fc346158c83",
+        "android_client_info": {
+          "package_name": "com.tuminh.strak_shop.strak_shop_project"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "338392055482-hbfm48m5bs0vusc440hbo46eu1cib5ef.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDS7KdcmpMM9FSyTKJrn3qKnv4x7HbNtW0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "338392055482-hbfm48m5bs0vusc440hbo46eu1cib5ef.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
