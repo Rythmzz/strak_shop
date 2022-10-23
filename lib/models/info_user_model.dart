@@ -21,6 +21,14 @@ class InfoUserModel extends ChangeNotifier{
 
   List<Cart> get getListCart => _listCart;
 
+  double totalPrice(){
+    double total = 0.0;
+    for(int i = 0 ; i < _listCart.length ; i++){
+        total += _listCart[i].getPrice! * _listCart[i].getAmount!;
+    }
+    return total;
+  }
+
 
   InfoUserModel(){
     listenToInfoUser();

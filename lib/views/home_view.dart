@@ -42,6 +42,7 @@ class _HomePageState extends State<HomePage> {
   final _auth = AuthService();
   int _selectIndex = 0;
   bool _isCart = false;
+  bool _canCreateProc = false;
 
 
 
@@ -101,9 +102,12 @@ class _HomePageState extends State<HomePage> {
           ],
 
         ),
-        floatingActionButton: FloatingActionButton(backgroundColor: StrakColor.colorTheme6,onPressed: (){
-          Navigator.of(context).push(MaterialPageRoute(builder: (contextr) => CreateNewProducts()));
-        },child: Icon(Icons.add_business_outlined,size: 30,color: Colors.blueAccent,)),
+        floatingActionButton: Visibility(
+          visible: _canCreateProc ? true : false,
+          child: FloatingActionButton(backgroundColor: StrakColor.colorTheme6,onPressed: (){
+            Navigator.of(context).push(MaterialPageRoute(builder: (contextr) => CreateNewProducts()));
+          },child: Icon(Icons.add_business_outlined,size: 30,color: Colors.blueAccent,)),
+        ),
         body: SafeArea(
           child:_selectPage.elementAt(_selectIndex) ,
         ),
@@ -150,8 +154,6 @@ class DetailCartPage extends StatefulWidget{
 }
 
 class _DetailCartPageState extends State<DetailCartPage> {
-
-
   @override
   Widget build(BuildContext context) {
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
@@ -160,14 +162,88 @@ class _DetailCartPageState extends State<DetailCartPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Container(
+                  height: 325,
+                  child: Padding(
+                    padding: EdgeInsets.all(16), child: ListView.separated(
+                    itemCount: snapshot.getListCart.length,
+                    itemBuilder: (context,i) => ProductCartView(currentCart: snapshot.getListCart[i],currentUser: snapshot,),
+                    separatorBuilder: (context,i) => SizedBox(height: 10,),
+                  ),),
+                ),
                 Padding(
-                  padding: EdgeInsets.all(16), child: ListView.separated(
-                  physics: NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount: snapshot.getListCart.length,
-                  itemBuilder: (context,i) => ProductCartView(currentCart: snapshot.getListCart[i],currentUser: snapshot,),
-                  separatorBuilder: (context,i) => SizedBox(height: 15,),
-                ),)
+                  padding: const EdgeInsets.only(left: 16.0,right: 16.0,bottom: 16.0),
+                  child: Card(elevation: 8,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                            Text("Items (${snapshot.getListCart.length})",style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12
+                            ),),
+                            Text("\$${snapshot.totalPrice().toStringAsFixed(2)}",style: TextStyle(
+                                fontSize: 12
+                            ),)
+
+                          ],),
+                          SizedBox(height: 15,),
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                            Text("Shipping",style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12
+                            ),),
+                            Text("\$0",style: TextStyle(
+                                fontSize: 12
+                            ),)
+
+                          ],),
+                          SizedBox(height: 15,),
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                            Text("Import Charges",style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12
+                            ),),
+                            Text("\$0",style: TextStyle(
+                                fontSize: 12
+                            ),)
+
+                          ],),
+                          SizedBox(height: 15,),
+                          Divider(height: 10,color: StrakColor.colorTheme7,),
+                          SizedBox(height: 5,),
+                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                            Text("Total Price",style: TextStyle(
+                                color: StrakColor.colorTheme7,
+                                fontSize: 16,
+                              fontWeight: FontWeight.bold
+                            ),),
+                            Row(
+                              children: [
+                                Text("\$${snapshot.totalPrice().toStringAsFixed(2)}",style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.blueAccent,
+                                    fontWeight: FontWeight.bold
+                                ),),
+                                SizedBox(width: 15,),
+                                Container(
+                                  height: 20,
+                                  child: ElevatedButton(style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
+                                  ),onPressed: (){
+
+                                  }, child: Text("Buy Now")),
+                                )
+                              ],
+                            )
+
+                          ],)
+                        ],
+                      ),
+                    ),
+                  ),
+                )
               ]));
     });
   }

@@ -43,8 +43,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     super.initState();
   }
 
-
-
   @override
   Widget build(BuildContext context) {
 

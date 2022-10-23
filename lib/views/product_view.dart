@@ -120,18 +120,26 @@ class _ProductCartViewState extends State<ProductCartView> {
     }
   }
 
+  void deleteCart() async{
+
+
+    widget.currentCart.amount = widget.currentCart.getAmount! - 1;
+    await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeCart(widget.currentCart);
+
+  }
+
   @override
   Widget build(BuildContext context) {
    return Consumer<ProductModel>(builder: (context,snapshot,_){
       convertProduct(snapshot);
      return Container(
-         height: 160,
+         height: 140,
          decoration: BoxDecoration(
              borderRadius: BorderRadius.all(Radius.circular(4)),
              border: Border.all(width: 3,color: StrakColor.colorTheme6)
          ),
          child: Padding(
-           padding: EdgeInsets.all(16),
+           padding: EdgeInsets.all(8),
            child: Row(
              children: [
                Container(
@@ -154,7 +162,7 @@ class _ProductCartViewState extends State<ProductCartView> {
                          crossAxisAlignment: CrossAxisAlignment.start,
                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                          children: [
-                           Flexible(child:Text(currentProduct.getName!.length <= 29 ? currentProduct.getName! : "${currentProduct.getName!.substring(0,29)}..",style: TextStyle(color: StrakColor.colorTheme7,
+                           Flexible(child:Text(currentProduct.getName!.length <= 26 ? currentProduct.getName! : "${currentProduct.getName!.substring(0,25)}..",style: TextStyle(color: StrakColor.colorTheme7,
                                fontSize: 16,fontWeight: FontWeight.bold),) ,flex: 5,),
                            SizedBox(width: 20,),
                            InkWell(
@@ -170,8 +178,8 @@ class _ProductCartViewState extends State<ProductCartView> {
                            ) ,
                            InkWell(
                              child: Icon(Icons.delete_outline,color: Colors.grey,),
-                             onTap: () async {
-                                await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeCart(widget.currentCart);
+                             onTap: () async{
+                               await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeCart(widget.currentCart);
                              },
                            )
                          ],
@@ -189,19 +197,25 @@ class _ProductCartViewState extends State<ProductCartView> {
                        Row(
                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                          children: [
-                           Text("\$${currentProduct.getSalePrice == 0 ? "${(currentProduct.getPrice! * widget.currentCart.getAmount!).toStringAsFixed(2)}" : "${(currentProduct.getSalePrice! * widget.currentCart.getAmount!).toStringAsFixed(2)}"}",style: TextStyle(
+                           Text("\$${(widget.currentCart.getPrice! * widget.currentCart.getAmount!).toStringAsFixed(2)}",style: TextStyle(
                                color: Colors.blueAccent,
                                fontWeight: FontWeight.bold,
                                fontSize: 14
                            ),),
                            Row(
                              children: [
-                               Container(
-                                 width:32,
-                                 child: Icon(Icons.remove,color: Colors.grey),
-                                 decoration: BoxDecoration(
-                                     borderRadius: BorderRadius.only(topLeft: Radius.circular(4),bottomLeft: Radius.circular(4)),
-                                     border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                               InkWell(
+                                 onTap: () async {
+                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).updateIndexCart(widget.currentCart,-1);
+                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeIndexCart(widget.currentCart,-1);
+                               },
+                                 child: Container(
+                                   width:32,
+                                   child: Icon(Icons.remove,color: Colors.grey),
+                                   decoration: BoxDecoration(
+                                       borderRadius: BorderRadius.only(topLeft: Radius.circular(4),bottomLeft: Radius.circular(4)),
+                                       border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                                   ),
                                  ),
                                ),
                                Container(
@@ -211,12 +225,19 @@ class _ProductCartViewState extends State<ProductCartView> {
                                  child: Text("${widget.currentCart.getAmount!}"),
                                  color: StrakColor.colorTheme6,
                                ),
-                               Container(
-                                 width: 32,
-                                 child: Icon(Icons.add,color: Colors.grey),
-                                 decoration: BoxDecoration(
-                                     borderRadius: BorderRadius.only(topRight: Radius.circular(4),bottomRight: Radius.circular(4)),
-                                     border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                               InkWell(
+                                 onTap: () async {
+                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).updateIndexCart(widget.currentCart,1);
+                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeIndexCart(widget.currentCart,1);
+
+                                 },
+                                 child: Container(
+                                   width: 32,
+                                   child: Icon(Icons.add,color: Colors.grey),
+                                   decoration: BoxDecoration(
+                                       borderRadius: BorderRadius.only(topRight: Radius.circular(4),bottomRight: Radius.circular(4)),
+                                       border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                                   ),
                                  ),
                                )
                              ],

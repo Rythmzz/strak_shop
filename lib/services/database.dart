@@ -43,7 +43,6 @@ class DatabaseService{
     });
   }
   Future<void> updateCart(Cart cart) async{
-
     // await Future.delayed(Duration(seconds: 2));
     FirebaseFirestore.instance.runTransaction((transaction)async{
       var result = await _firebaseFirestore.collection('list_user').doc(_uid).update({
@@ -52,7 +51,25 @@ class DatabaseService{
     });
 
   }
+  Future<void> updateIndexCart(Cart cart, int index) async{
+    cart.amount = cart.getAmount! + index;
+    FirebaseFirestore.instance.runTransaction((transaction) async {
+      await _firebaseFirestore.collection('list_user').doc(_uid).update({
+        'cart' : FieldValue.arrayUnion([cart.toJson()])
+      });
+    });
+  }
   Future removeCart(Cart cart) async{
+    FirebaseFirestore.instance.runTransaction((transaction)async{
+      return await _firebaseFirestore.collection('list_user').doc(_uid).update({
+        'cart' : FieldValue.arrayRemove([cart.toJson()])
+      });
+    });
+
+  }
+  Future removeIndexCart(Cart cart,int index) async{
+    await Future.delayed(Duration(milliseconds: 100));
+    cart.amount = cart.getAmount! - index;
     FirebaseFirestore.instance.runTransaction((transaction)async{
       return await _firebaseFirestore.collection('list_user').doc(_uid).update({
         'cart' : FieldValue.arrayRemove([cart.toJson()])
@@ -260,10 +277,23 @@ class DatabaseService{
       String data = json.encode(element);
       _listCart.add(Cart.fromJson(jsonDecode(data)));
     });
+    if(_listCart != []){
+      for(int i = 0 ; i < _listCart.length ; i++){
+        for(int j = i + 1; j < _listCart.length ; j++){
+          if(_listCart[i].getIdProduct! > _listCart[j].getIdProduct! ||
+              (_listCart[i].getIdProduct == _listCart[j].getIdProduct &&
+                  (_listCart[i].getSize!.compareTo(_listCart[j].getSize!) == 1 ||
+                  _listCart[i].getColor!.compareTo(_listCart[j].getColor!) == 1))){
+            Cart temp = _listCart[i];
+            _listCart[i] = _listCart[j];
+            _listCart[j] = temp;
+          }
+        }
+      }
+    }
     return _listCart;
-
-
   }
+
 
 
 
