@@ -62,7 +62,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
            ],
          ),
          floatingActionButton: FloatingActionButton(onPressed: () async {
-           _cart = Cart(widget.currentProduct.getId!,1,widget.currentProduct.getSalePrice! == 0 ? widget.currentProduct.getPrice! : widget.currentProduct.getSalePrice!,_selectSize,_selectColor == null ? "" : _selectColor.toString());
+           _cart = Cart(widget.currentProduct.getId!,1,widget.currentProduct.getSalePrice! == 0 ? widget.currentProduct.getPrice! : widget.currentProduct.getSalePrice!,_selectSize == null ? "" : _selectSize,_selectColor == null ? "" : _selectColor.toString());
             for(int i= 0 ; i< snapshot.getListCart.length ; i++){
               if( _cart.getIdProduct == snapshot.getListCart[i].getIdProduct && _cart.getColor == snapshot.getListCart[i].getColor && _cart.getSize == snapshot.getListCart[i].getSize){
                     _cart.amount = snapshot.getListCart[i].getAmount! +1;

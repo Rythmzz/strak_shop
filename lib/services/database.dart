@@ -78,6 +78,13 @@ class DatabaseService{
     });
 
   }
+  Future removeAllCart() async{
+    FirebaseFirestore.instance.runTransaction((transaction)async{
+      return await _firebaseFirestore.collection('list_user').doc(_uid).update({
+        'cart' : []
+      });
+    });
+  }
 
 
   Future updateViewProduct(int id) async{

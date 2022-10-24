@@ -15,6 +15,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:strak_shop_project/models/bloc_search.dart';
 import 'package:strak_shop_project/models/category_model.dart';
 import 'package:strak_shop_project/models/info_user.dart';
+import 'package:strak_shop_project/models/order_model.dart';
 import 'package:strak_shop_project/models/product_model.dart';
 import 'package:strak_shop_project/services/auth.dart';
 import 'package:strak_shop_project/services/colors.dart';
@@ -43,7 +44,8 @@ class _HomePageState extends State<HomePage> {
 
   final _auth = AuthService();
   int _selectIndex = 0;
-  bool _isCart = false;
+  bool _isSearch = true;
+  String _labelPage = "";
   bool _canCreateProc = false;
 
 
@@ -55,44 +57,31 @@ class _HomePageState extends State<HomePage> {
       return Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
-        appBar: _isCart ? AppBar(
-          backgroundColor: Colors.white,
-          title: Container(
-            alignment: Alignment.centerLeft,
-            height: 50,
-            child: Text("Your Cart",style: TextStyle(
-                color: StrakColor.colorTheme7,
-                fontSize: 16,
-                fontWeight: FontWeight.bold
-            ),),
-          ),
-          toolbarHeight: 80,
-          automaticallyImplyLeading: false,
-        ): AppBar(
+        appBar: _isSearch ? AppBar(
           backgroundColor: Colors.white,
           title: SizedBox(
-            height: 50,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchProductView()));
-              },
-              child: TextField(
-                enabled: false,
-                decoration: InputDecoration(
-                  hintText: "Search Product",
-                  prefixIcon: Icon(Icons.search,color: Theme.of(context).primaryColor,size: 24,),
-                  border: OutlineInputBorder(
-                    borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3),
+              height: 50,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchProductView()));
+                },
+                child: TextField(
+                  enabled: false,
+                  decoration: InputDecoration(
+                    hintText: "Search Product",
+                    prefixIcon: Icon(Icons.search,color: Theme.of(context).primaryColor,size: 24,),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3)
+                    ),
                   ),
-                  enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3)
+                  style: TextStyle(
+                      fontSize: 14
                   ),
                 ),
-                style: TextStyle(
-                    fontSize: 14
-                ),
-              ),
-            )
+              )
           ) ,
           toolbarHeight: 80,
           actions: [
@@ -104,6 +93,19 @@ class _HomePageState extends State<HomePage> {
             },),
           ],
 
+        ) : AppBar(
+          backgroundColor: Colors.white,
+          title: Container(
+            alignment: Alignment.centerLeft,
+            height: 50,
+            child: Text("$_labelPage",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 16,
+                fontWeight: FontWeight.bold
+            ),),
+          ),
+          toolbarHeight: 80,
+          automaticallyImplyLeading: false,
         ),
         floatingActionButton: Visibility(
           visible: _canCreateProc ? true : false,
@@ -118,7 +120,6 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined,size: 24),label: "Home",),
           BottomNavigationBarItem(icon: Icon(Icons.search_outlined,size: 24),label: "Explore"),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined,size: 24),label: "Cart"),
-          BottomNavigationBarItem(icon: Icon(Icons.local_offer_outlined,size: 24),label: "Offer"),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined,size: 24),label: "Account")
         ],currentIndex: _selectIndex,selectedItemColor: Theme.of(context).primaryColor,onTap:handleClickMenu ,),
       );
@@ -126,15 +127,20 @@ class _HomePageState extends State<HomePage> {
   }
   void handleClickMenu(int val){
     setState(() {
-      if(val == 2){
-
+      if(val == 2 || val == 3){
         setState(() {
-          _isCart = true;
+          _isSearch = false;
+          if(val == 2){
+            _labelPage = "Your Cart";
+          }
+          else {
+            _labelPage = "Your Account";
+          }
         });
       }
       else {
         setState(() {
-          _isCart = false;
+          _isSearch = true;
         });
       }
       _selectIndex = val;
@@ -145,7 +151,6 @@ class _HomePageState extends State<HomePage> {
     DetailHomePage(),
     DetailExplorePage(),
     DetailCartPage(),
-    SelectPage(select: "Offer" ),
     DetailUserPage(),
   ];
 
@@ -164,112 +169,113 @@ class _DetailCartPageState extends State<DetailCartPage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
-      return SingleChildScrollView(
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 325,
-                  child: Padding(
-                    padding: EdgeInsets.all(16), child: ListView.separated(
-                    itemCount: snapshot.getListCart.length,
-                    itemBuilder: (context,i) => ProductCartView(currentCart: snapshot.getListCart[i],currentUser: snapshot,),
-                    separatorBuilder: (context,i) => SizedBox(height: 10,),
-                  ),),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0,right: 16.0,bottom: 16.0),
-                  child: Card(elevation: 8,
+      return Consumer<OrderModel>(builder:(context,snapshotOr,_){
+        return snapshot.getListCart.isNotEmpty ?SingleChildScrollView(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 325,
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        children: [
-                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
-                            Text("Items (${snapshot.getListCart.length})",style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 12
-                            ),),
-                            Text("\$${snapshot.totalPrice().toStringAsFixed(2)}",style: TextStyle(
-                                fontSize: 12
-                            ),)
+                      padding: EdgeInsets.all(16), child: ListView.separated(
+                      itemCount: snapshot.getListCart.length,
+                      itemBuilder: (context,i) => ProductCartView(currentCart: snapshot.getListCart[i],currentUser: snapshot,),
+                      separatorBuilder: (context,i) => SizedBox(height: 10,),
+                    ),),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0,right: 16.0,bottom: 16.0),
+                    child: Card(elevation: 8,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                              Text("Items (${snapshot.getListCart.length})",style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12
+                              ),),
+                              Text("\$${snapshot.totalPrice().toStringAsFixed(2)}",style: TextStyle(
+                                  fontSize: 12
+                              ),)
 
-                          ],),
-                          SizedBox(height: 15,),
-                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
-                            Text("Shipping",style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12
-                            ),),
-                            Text("\$0",style: TextStyle(
-                                fontSize: 12
-                            ),)
+                            ],),
+                            SizedBox(height: 15,),
+                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                              Text("Shipping",style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12
+                              ),),
+                              Text("\$0",style: TextStyle(
+                                  fontSize: 12
+                              ),)
 
-                          ],),
-                          SizedBox(height: 15,),
-                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
-                            Text("Import Charges",style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12
-                            ),),
-                            Text("\$0",style: TextStyle(
-                                fontSize: 12
-                            ),)
+                            ],),
+                            SizedBox(height: 15,),
+                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                              Text("Import Charges",style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12
+                              ),),
+                              Text("\$0",style: TextStyle(
+                                  fontSize: 12
+                              ),)
 
-                          ],),
-                          SizedBox(height: 15,),
-                          Divider(height: 10,color: StrakColor.colorTheme7,),
-                          SizedBox(height: 5,),
-                          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
-                            Text("Total Price",style: TextStyle(
-                                color: StrakColor.colorTheme7,
-                                fontSize: 16,
-                              fontWeight: FontWeight.bold
-                            ),),
-                            Row(
-                              children: [
-                                Text("\$${snapshot.totalPrice().toStringAsFixed(2)}",style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.blueAccent,
-                                    fontWeight: FontWeight.bold
-                                ),),
-                                SizedBox(width: 15,),
-                                Container(
-                                  height: 20,
-                                  child: ElevatedButton(style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
-                                  ),onPressed: () {
-                                    showDialog(context: context, builder: (context) {
-                                      return AlertDialog(
-                                        title: Text("Order Confirmation"),
-                                        content: Container(
-                                          width: 250,
-                                          height: 250,
-                                          child: SingleChildScrollView(
-                                            child: Column(
-                                              children: [
-                                                TextField(onChanged: (val){
-                                                  _order.address = val;
-                                                },
-                                                  decoration: InputDecoration(
-                                                    enabledBorder: OutlineInputBorder(
-                                                        borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                            ],),
+                            SizedBox(height: 15,),
+                            Divider(height: 10,color: StrakColor.colorTheme7,),
+                            SizedBox(height: 5,),
+                            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,children: [
+                              Text("Total Price",style: TextStyle(
+                                  color: StrakColor.colorTheme7,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold
+                              ),),
+                              Row(
+                                children: [
+                                  Text("\$${snapshot.totalPrice().toStringAsFixed(2)}",style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.blueAccent,
+                                      fontWeight: FontWeight.bold
+                                  ),),
+                                  SizedBox(width: 15,),
+                                  Container(
+                                    height: 20,
+                                    child: ElevatedButton(style: ButtonStyle(
+                                        backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
+                                    ),onPressed: () {
+                                      showDialog(context: context, builder: (context) {
+                                        return AlertDialog(
+                                          title: Text("Order Confirmation"),
+                                          content: Container(
+                                            width: 250,
+                                            height: 250,
+                                            child: SingleChildScrollView(
+                                              child: Column(
+                                                children: [
+                                                  TextField(onChanged: (val){
+                                                    _order.address = val;
+                                                  },
+                                                    decoration: InputDecoration(
+                                                      enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                                                      ),
+                                                      border: OutlineInputBorder(
+                                                          borderSide: BorderSide(width:3)
+                                                      ),
+                                                      hintText: "Enter Your Address",
+                                                    ),style: TextStyle(
+                                                        fontSize: 12
                                                     ),
-                                                    border: OutlineInputBorder(
-                                                        borderSide: BorderSide(width:3)
-                                                    ),
-                                                    hintText: "Enter Your Address",
-                                                  ),style: TextStyle(
-                                                    fontSize: 12
-                                                ),
-                                                ),
-                                                SizedBox(height: 12,)
-                                                ,
-                                                TextField(
+                                                  ),
+                                                  SizedBox(height: 12,)
+                                                  ,
+                                                  TextField(
                                                     onChanged: (val) {
                                                       _order.orderNote = val;
                                                     },
-                                                  decoration: InputDecoration(
+                                                    decoration: InputDecoration(
                                                       enabledBorder: OutlineInputBorder(
                                                           borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
                                                       ),
@@ -277,61 +283,88 @@ class _DetailCartPageState extends State<DetailCartPage> {
                                                         borderSide: BorderSide(width:3),
                                                       ),
                                                       hintText: "Note",
+                                                    ),
+                                                    style: TextStyle(fontSize: 12),
+                                                    keyboardType: TextInputType.multiline,
+                                                    minLines: 5,
+                                                    maxLines: 5,
+                                                    maxLength: 100,
                                                   ),
-                                                  style: TextStyle(fontSize: 12),
-                                                  keyboardType: TextInputType.multiline,
-                                                  minLines: 5,
-                                                  maxLines: 5,
-                                                  maxLength: 100,
-                                                ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.end,
-                                                  children: [
-                                                    ElevatedButton(onPressed: () {
-                                                      Navigator.of(context).pop();
-                                                    }, child: Text("Cancel")),
-                                                    SizedBox(width: 15,),
-                                                    ElevatedButton(onPressed: () async {
-                                                      _order.uid = snapshot.getListInfoUser!.uid;
-                                                      _order.orderCode = _order.getId.toString();
-                                                      _order.orderDate = DateFormat.yMEd().add_jms().format(DateTime.now());
-                                                      _order.totalPrice = double.tryParse(snapshot.totalPrice().toStringAsFixed(2))!;
-                                                      snapshot.getListCart.forEach((element) {
-                                                        String data = json.encode(element);
-                                                        _order.addObject(jsonDecode(data));
-                                                      });
-                                                      await DatabaseService(_order.getUid).createNewOrder(_order.getId, _order.getOrderDate, _order.getOrderCode, _order.getOrderNote, _order.getTotalPrice, _order.getAddress, _order.getOrderDetail);
-                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Success")));
-                                                      Navigator.of(context).pop();
-                                                    }, child: Text("Confirm"))
-                                                  ],
-                                                )
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      ElevatedButton(onPressed: () {
+                                                        Navigator.of(context).pop();
+                                                      }, child: Text("Cancel")),
+                                                      SizedBox(width: 15,),
+                                                      ElevatedButton(onPressed: () async {
+                                                        if(snapshotOr.getListOrder != []){
+                                                          _order.id = snapshotOr.getListOrder.last.getId + 1;
+                                                        }
+                                                        _order.uid = snapshot.getListInfoUser!.uid;
+                                                        _order.orderCode = "#TM${_order.getId}";
+                                                        _order.orderDate = DateFormat.yMEd().add_jms().format(DateTime.now());
+                                                        _order.totalPrice = double.tryParse(snapshot.totalPrice().toStringAsFixed(2))!;
+                                                        snapshot.getListCart.forEach((element) {
+                                                          String data = json.encode(element);
+                                                          _order.addObject(jsonDecode(data));
+                                                        });
+                                                        await DatabaseService(_order.getUid).createNewOrder(_order.getId, _order.getOrderDate, _order.getOrderCode, _order.getOrderNote, _order.getTotalPrice, _order.getAddress, _order.getOrderDetail);
+                                                        await DatabaseService(_order.getUid).removeAllCart();
+                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Buy Success")));
+                                                        Navigator.of(context).pop();
+                                                      }, child: Text("Confirm"))
+                                                    ],
+                                                  )
 
-                                              ],
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      );
+                                        );
 
-                                    },);
-
+                                      },);
 
 
 
-                                  }, child: Text("Buy Now")),
-                                )
-                              ],
-                            )
 
-                          ],)
-                        ],
+
+                                    }, child: Text("Buy Now")),
+                                  )
+                                ],
+                              )
+
+                            ],)
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                )
-              ]));
+                  )
+                ])) : Center(
+                  child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: ShapeDecoration(shape:CircleBorder(),color: Colors.blue),
+              child: Icon(Icons.clear,color: Colors.white,size: 30) ,
+            ),
+            SizedBox(height: 15,),
+            Text("Cart Is Empty",style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: StrakColor.colorTheme7
+            ),)
+
+          ],
+        ),
+                );
+      });
     });
   }
+
+
 }
 
 
@@ -890,24 +923,34 @@ class DetailUserPage extends StatelessWidget{
   Widget build(BuildContext context) {
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          InkWell(onTap: () async{
-            final ImagePicker _picked = ImagePicker();
-            final XFile? image =await _picked.pickImage(source: ImageSource.gallery);
-            if(image?.name != null){
-              StorageRepository().uploadFileImageAvatar(image!, 'user', snapshot.getListInfoUser!.uid,snapshot.getListInfoUser!.imageName);
-
-            }
-          },
-              child: snapshot.getListInfoUser?.imageUrls == "" ? CircleAvatar(
-                child: Icon(Icons.account_circle_outlined),
-              ) : CircleAvatar(backgroundImage: CachedNetworkImageProvider(snapshot.getListInfoUser?.imageUrls ?? "https://us.123rf.com/450wm/yehorlisnyi/yehorlisnyi2104/yehorlisnyi210400016/167492439-no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-comin.jpg?ver=6"),)
+          ListTile(
+            title: Text("Profile",style: TextStyle(
+              color: StrakColor.colorTheme7,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),),
+            leading: Icon(Icons.account_circle,color: Colors.lightBlueAccent,),
           ),
-          ElevatedButton(onPressed: () async{
-            _authService.signOut();
-          }, child: Text("Sign Out"))
+          ListTile(
+            title: Text("Order",style: TextStyle(
+              color: StrakColor.colorTheme7,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),),
+            leading: Icon(Icons.sticky_note_2_outlined,color: Colors.lightBlueAccent,),
+          ),
+          ListTile(
+            title: Text("Sign Out",style: TextStyle(
+              color: StrakColor.colorTheme7,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),),
+            leading: Icon(Icons.exit_to_app,color: Colors.lightBlueAccent,),
+          ),
+
 
         ],
       );
@@ -915,6 +958,22 @@ class DetailUserPage extends StatelessWidget{
   }
 
 }
+
+// InkWell(onTap: () async{
+// final ImagePicker _picked = ImagePicker();
+// final XFile? image =await _picked.pickImage(source: ImageSource.gallery);
+// if(image?.name != null){
+// StorageRepository().uploadFileImageAvatar(image!, 'user', snapshot.getListInfoUser!.uid,snapshot.getListInfoUser!.imageName);
+//
+// }
+// },
+// child: snapshot.getListInfoUser?.imageUrls == "" ? CircleAvatar(
+// child: Icon(Icons.account_circle_outlined),
+// ) : CircleAvatar(backgroundImage: CachedNetworkImageProvider(snapshot.getListInfoUser?.imageUrls ?? "https://us.123rf.com/450wm/yehorlisnyi/yehorlisnyi2104/yehorlisnyi210400016/167492439-no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-comin.jpg?ver=6"),)
+// ),
+// ElevatedButton(onPressed: () async{
+// _authService.signOut();
+// }, child: Text("Sign Out"))
 
 class SelectPage extends StatelessWidget{
   final String select;

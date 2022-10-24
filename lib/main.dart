@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:strak_shop_project/models/category_model.dart';
 import 'package:strak_shop_project/models/info_user_model.dart';
+import 'package:strak_shop_project/models/order_model.dart';
 import 'package:strak_shop_project/models/product.dart';
 import 'package:strak_shop_project/models/product_model.dart';
 import 'package:strak_shop_project/models/router_provider.dart';
@@ -29,7 +30,8 @@ class MyApp extends StatelessWidget{
         StreamProvider<Account?>.value(initialData: null,value: AuthService().getStateAccount),
         ChangeNotifierProvider(create: (context) => ProductModel()),
         ChangeNotifierProvider(create: (context) => CategoryModel()),
-        ChangeNotifierProvider(create: (context) => InfoUserModel())
+        ChangeNotifierProvider(create: (context) => InfoUserModel()),
+        ChangeNotifierProvider(create: (context) => OrderModel()),
       ],
       child: MaterialApp(
         home: LayoutBuilder(builder: (context,constraint){
