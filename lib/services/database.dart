@@ -10,6 +10,7 @@ import 'package:strak_shop_project/models/product.dart';
 import 'package:strak_shop_project/services/storage_repository.dart';
 
 import '../models/cart.dart';
+import '../models/order.dart';
 
 class DatabaseService{
   final String? _uid;
@@ -271,7 +272,7 @@ class DatabaseService{
   //   return product!;
   // }
 
-  Future<List<Cart>> getListCart(InfoUser snapshot) async{
+  Future<List<Cart>> getListCartFromUser(InfoUser snapshot) async{
     List<Cart> _listCart = [];
     snapshot.cart.forEach((element) {
       String data = json.encode(element);
@@ -312,6 +313,39 @@ class DatabaseService{
       'imageURL' : downloadURL,
       'imageName' : imageName,
     });
+  }
+
+
+  Future<List<Cart>> getListCartFromOrder(Order snapshot) async {
+    List<Cart> _listCart = [];
+    snapshot.getOrderDetail.forEach((element) {
+      String data = json.encode(element);
+      _listCart.add(Cart.fromJson(jsonDecode(data)));
+    });
+    return _listCart;
+  }
+
+  Future<List<Order>> getListOrder() async{
+    QuerySnapshot querySnapshot = await _firebaseFirestore.collection('list_order').get();
+    final allData = querySnapshot.docs.map((doc) {
+      return Order.fromDocument(doc);
+    }).toList();
+    return allData;
+
+  }
+
+  Future createNewOrder(int id,String orderDate,String orderCode,String orderNote,double totalPrice,String address,List<Object> currentCart) async {
+    await _firebaseFirestore.collection('list_order').doc(id.toString()).set({
+      'id' : id,
+      'uid' : _uid,
+      'orderDate' : orderDate,
+      'orderCode' : orderCode,
+      'orderNote' : orderNote,
+      'totalPrice' : totalPrice,
+      'address' : address,
+      'orderDetail' : currentCart
+    });
+
   }
 
 

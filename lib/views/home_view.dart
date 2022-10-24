@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:strak_shop_project/models/bloc_search.dart';
@@ -30,6 +31,7 @@ import 'package:strak_shop_project/views/search_product_view.dart';
 import '../models/account.dart';
 import '../models/cart.dart';
 import '../models/info_user_model.dart';
+import '../models/order.dart';
 import '../models/product.dart';
 
 class HomePage extends StatefulWidget{
@@ -51,6 +53,7 @@ class _HomePageState extends State<HomePage> {
     final _account = Provider.of<Account?>(context);
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
       return Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.white,
         appBar: _isCart ? AppBar(
           backgroundColor: Colors.white,
@@ -154,6 +157,10 @@ class DetailCartPage extends StatefulWidget{
 }
 
 class _DetailCartPageState extends State<DetailCartPage> {
+  Order _order = Order(0,"","","","",0.0,"",[]);
+
+
+
   @override
   Widget build(BuildContext context) {
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
@@ -231,7 +238,85 @@ class _DetailCartPageState extends State<DetailCartPage> {
                                   height: 20,
                                   child: ElevatedButton(style: ButtonStyle(
                                     backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
-                                  ),onPressed: (){
+                                  ),onPressed: () {
+                                    showDialog(context: context, builder: (context) {
+                                      return AlertDialog(
+                                        title: Text("Order Confirmation"),
+                                        content: Container(
+                                          width: 250,
+                                          height: 250,
+                                          child: SingleChildScrollView(
+                                            child: Column(
+                                              children: [
+                                                TextField(onChanged: (val){
+                                                  _order.address = val;
+                                                },
+                                                  decoration: InputDecoration(
+                                                    enabledBorder: OutlineInputBorder(
+                                                        borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                                                    ),
+                                                    border: OutlineInputBorder(
+                                                        borderSide: BorderSide(width:3)
+                                                    ),
+                                                    hintText: "Enter Your Address",
+                                                  ),style: TextStyle(
+                                                    fontSize: 12
+                                                ),
+                                                ),
+                                                SizedBox(height: 12,)
+                                                ,
+                                                TextField(
+                                                    onChanged: (val) {
+                                                      _order.orderNote = val;
+                                                    },
+                                                  decoration: InputDecoration(
+                                                      enabledBorder: OutlineInputBorder(
+                                                          borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                                                      ),
+                                                      border: OutlineInputBorder(
+                                                        borderSide: BorderSide(width:3),
+                                                      ),
+                                                      hintText: "Note",
+                                                  ),
+                                                  style: TextStyle(fontSize: 12),
+                                                  keyboardType: TextInputType.multiline,
+                                                  minLines: 5,
+                                                  maxLines: 5,
+                                                  maxLength: 100,
+                                                ),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.end,
+                                                  children: [
+                                                    ElevatedButton(onPressed: () {
+                                                      Navigator.of(context).pop();
+                                                    }, child: Text("Cancel")),
+                                                    SizedBox(width: 15,),
+                                                    ElevatedButton(onPressed: () async {
+                                                      _order.uid = snapshot.getListInfoUser!.uid;
+                                                      _order.orderCode = _order.getId.toString();
+                                                      _order.orderDate = DateFormat.yMEd().add_jms().format(DateTime.now());
+                                                      _order.totalPrice = double.tryParse(snapshot.totalPrice().toStringAsFixed(2))!;
+                                                      snapshot.getListCart.forEach((element) {
+                                                        String data = json.encode(element);
+                                                        _order.addObject(jsonDecode(data));
+                                                      });
+                                                      await DatabaseService(_order.getUid).createNewOrder(_order.getId, _order.getOrderDate, _order.getOrderCode, _order.getOrderNote, _order.getTotalPrice, _order.getAddress, _order.getOrderDetail);
+                                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Success")));
+                                                      Navigator.of(context).pop();
+                                                    }, child: Text("Confirm"))
+                                                  ],
+                                                )
+
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      );
+
+                                    },);
+
+
+
 
                                   }, child: Text("Buy Now")),
                                 )

@@ -45,7 +45,7 @@ class InfoUserModel extends ChangeNotifier{
 
     _reference.snapshots().listen((event) async {
       _listInfoUser = await DatabaseService(uid).getInfoUser();
-      _listCart = await DatabaseService(uid).getListCart(_listInfoUser!);
+      _listCart = await DatabaseService(uid).getListCartFromUser(_listInfoUser!);
       notifyListeners();
     });
 
