@@ -11,16 +11,11 @@ import '../models/info_user_model.dart';
 import '../services/colors.dart';
 
 class ProductView extends StatelessWidget{
-  final int id;
-  final String image;
-  final String name;
-  final double price;
-  final double salePrice;
-  final int promotion;
+  final Product currentProduct;
 
   final bool isFavoriteView;
 
-   ProductView({super.key,required this.id,required this.isFavoriteView,required this.image, required this.name, required this.price, required this.salePrice,required this.promotion});
+   ProductView({super.key,required this.currentProduct,required this.isFavoriteView});
 
    @override
   Widget build(BuildContext context) {
@@ -45,7 +40,7 @@ class ProductView extends StatelessWidget{
                     decoration: BoxDecoration(
                       color: Colors.white,
                         borderRadius: BorderRadius.all(Radius.circular(8)),
-                        image: DecorationImage(image: NetworkImage(image),fit: BoxFit.fitWidth)
+                        image: DecorationImage(image: CachedNetworkImageProvider(currentProduct.getImageURL![0]),fit: BoxFit.fitWidth)
                     ),
                   ),
                   onTap: () async {
@@ -53,7 +48,7 @@ class ProductView extends StatelessWidget{
                 ),
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text(name.length < 26 ? name : "${name.substring(0,26)}...",style: TextStyle(
+                  child: Text(currentProduct.getName!.length < 26 ? currentProduct.getName! : "${currentProduct.getName!.substring(0,26)}...",style: TextStyle(
                       color: Colors.indigo,
                       fontSize: 12,
                       fontWeight: FontWeight.bold
@@ -61,7 +56,7 @@ class ProductView extends StatelessWidget{
                 ),
           Align(
             alignment: Alignment.centerLeft,
-                child: Text(salePrice == 0 ? "\$$price" : "\$$salePrice" ,style: TextStyle(
+                child: Text(currentProduct.getSalePrice == 0 ? "\$${currentProduct.getPrice}" : "\$${currentProduct.getSalePrice}" ,style: TextStyle(
                     color: Theme.of(context).primaryColor,
                     fontSize: 12,
                     fontWeight: FontWeight.bold
@@ -69,19 +64,19 @@ class ProductView extends StatelessWidget{
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text("\$$price",style: TextStyle(
-                      color: salePrice == 0 ? Colors.transparent : Colors.grey,
+                    Text("\$${currentProduct.getPrice}",style: TextStyle(
+                      color: currentProduct.getSalePrice == 0 ? Colors.transparent : Colors.grey,
                       decoration: TextDecoration.lineThrough,
                       fontSize: 10,
                     )),
-                    Text("$promotion% Off",style: TextStyle(
-                        color: salePrice == 0 ? Colors.transparent : Colors.red,
+                    Text("${currentProduct.promotionPercent()}% Off",style: TextStyle(
+                        color: currentProduct.getSalePrice == 0 ? Colors.transparent : Colors.red,
                         fontSize: 10,
                         fontWeight: FontWeight.bold
                     )),
                     Visibility(child: IconButton(onPressed: () async{
-                      await DatabaseService(snapshot.getListInfoUser?.uid).updateRemoveIdProduct(id);
-                    }, icon: Icon(Icons.delete_outline),color: StrakColor.colorTheme6,),visible: isFavoriteView ? true : false,)
+                      await DatabaseService(snapshot.getListInfoUser?.uid).updateRemoveIdProduct(currentProduct.getId!);
+                    }, icon: Icon(Icons.delete_outline),color:Colors.grey,),visible: isFavoriteView ? true : false,)
                   ],
                 )
 
@@ -101,8 +96,9 @@ class ProductView extends StatelessWidget{
 class ProductCartView extends StatefulWidget{
   final Cart currentCart;
   InfoUserModel currentUser;
+  final bool isOrder;
 
-  ProductCartView({required this.currentCart,required this.currentUser});
+  ProductCartView({required this.currentCart,required this.currentUser,required this.isOrder});
 
   @override
   State<ProductCartView> createState() => _ProductCartViewState();
@@ -176,11 +172,14 @@ class _ProductCartViewState extends State<ProductCartView> {
                                }
                              },
                            ) ,
-                           InkWell(
-                             child: Icon(Icons.delete_outline,color: Colors.grey,),
-                             onTap: () async{
-                               await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeCart(widget.currentCart);
-                             },
+                           Visibility(
+                             visible: widget.isOrder ? false : true,
+                             child: InkWell(
+                               child: Icon(Icons.delete_outline,color: Colors.grey,),
+                               onTap: () async{
+                                 await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeCart(widget.currentCart);
+                               },
+                             ),
                            )
                          ],
                        ),
@@ -202,45 +201,50 @@ class _ProductCartViewState extends State<ProductCartView> {
                                fontWeight: FontWeight.bold,
                                fontSize: 14
                            ),),
-                           Row(
-                             children: [
-                               InkWell(
-                                 onTap: () async {
-                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).updateIndexCart(widget.currentCart,-1);
-                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeIndexCart(widget.currentCart,-1);
-                               },
-                                 child: Container(
-                                   width:32,
-                                   child: Icon(Icons.remove,color: Colors.grey),
-                                   decoration: BoxDecoration(
-                                       borderRadius: BorderRadius.only(topLeft: Radius.circular(4),bottomLeft: Radius.circular(4)),
-                                       border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                           Visibility(
+                             visible: widget.isOrder ? false : true,
+                             child: Row(
+                               children: [
+                                 Visibility(
+                                   visible: widget.currentCart.getAmount == 1 ? false : true,
+                                   child: InkWell(
+                                     onTap: () async {
+                                       await DatabaseService(widget.currentUser.getListInfoUser!.uid).updateIndexCart(widget.currentCart,-1);
+                                       await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeIndexCart(widget.currentCart,-1);
+                                   },
+                                     child: Container(
+                                       width:32,
+                                       child: Icon(Icons.remove,color: Colors.grey),
+                                       decoration: BoxDecoration(
+                                           borderRadius: BorderRadius.only(topLeft: Radius.circular(4),bottomLeft: Radius.circular(4)),
+                                           border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                                       ),
+                                     ),
                                    ),
                                  ),
-                               ),
-                               Container(
-                                 width: 40,
-                                 height: 28,
-                                 alignment: Alignment.center,
-                                 child: Text("${widget.currentCart.getAmount!}"),
-                                 color: StrakColor.colorTheme6,
-                               ),
-                               InkWell(
-                                 onTap: () async {
-                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).updateIndexCart(widget.currentCart,1);
-                                   await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeIndexCart(widget.currentCart,1);
-
-                                 },
-                                 child: Container(
-                                   width: 32,
-                                   child: Icon(Icons.add,color: Colors.grey),
-                                   decoration: BoxDecoration(
-                                       borderRadius: BorderRadius.only(topRight: Radius.circular(4),bottomRight: Radius.circular(4)),
-                                       border: Border.all(width: 2,color: StrakColor.colorTheme6)
-                                   ),
+                                 Container(
+                                   width: 40,
+                                   height: 28,
+                                   alignment: Alignment.center,
+                                   child: Text("${widget.currentCart.getAmount!}"),
+                                   color: StrakColor.colorTheme6,
                                  ),
-                               )
-                             ],
+                                 InkWell(
+                                   onTap: () async {
+                                     await DatabaseService(widget.currentUser.getListInfoUser!.uid).updateIndexCart(widget.currentCart,1);
+                                     await DatabaseService(widget.currentUser.getListInfoUser!.uid).removeIndexCart(widget.currentCart,1);
+                                   },
+                                   child: Container(
+                                     width: 32,
+                                     child: Icon(Icons.add,color: Colors.grey),
+                                     decoration: BoxDecoration(
+                                         borderRadius: BorderRadius.only(topRight: Radius.circular(4),bottomRight: Radius.circular(4)),
+                                         border: Border.all(width: 2,color: StrakColor.colorTheme6)
+                                     ),
+                                   ),
+                                 )
+                               ],
+                             ),
                            )
 
                          ],

@@ -7,14 +7,21 @@ import '../services/colors.dart';
 class ActivityPageView extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
-     return Scaffold(appBar: AppBar(
+     return Scaffold(appBar: AppBar(actions: [
+       Container(
+         width: 50,
+         height: 50,
+         decoration: ShapeDecoration(shape: CircleBorder(side: BorderSide(color: StrakColor.colorTheme6,width: 2)),image: DecorationImage(image: AssetImage("assets/images_app/logo_strak_red.png"),fit: BoxFit.fitWidth)),
+       ),
+       SizedBox(width: 30,)
+     ],
          foregroundColor: Colors.grey,
          backgroundColor: Colors.white,
          title: Text("Activity", style: TextStyle(
              fontWeight: FontWeight.bold,
              color: StrakColor.colorTheme7,
-             fontSize: 16
-         ),)),
+             fontSize: 20
+         ),),toolbarHeight: 80,),
        body:SafeArea(child: Text("Activity")),
      );
   }

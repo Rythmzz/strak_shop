@@ -33,6 +33,24 @@ class DatabaseService{
       'cart' : cart
     });
   }
+  Future updateGenderUser(String gender) async {
+    return await _firebaseFirestore.collection('list_user').doc(_uid).update(
+        {
+          'gender' : gender
+        });
+  }
+  Future updateBirthDayUser(DateTime date) async {
+    return await _firebaseFirestore.collection('list_user').doc(_uid).update(
+        {
+          'birthday' : "${date.day}/${date.month}/${date.year}"
+        });
+  }
+  Future updatePhoneNumberUser(List<String> phone) async {
+    return await _firebaseFirestore.collection('list_user').doc(_uid).update(
+        {
+          'phone' : "(${phone[0]}) ${phone[1]}"
+        });
+  }
   Future updateAddIdProduct(int id) async {
     return await _firebaseFirestore.collection('list_user').doc(_uid).update({
       'favorite' : FieldValue.arrayUnion([id])
@@ -182,6 +200,33 @@ class DatabaseService{
     });
     
   }
+  Future updateProduct(List<XFile?> listXFilePicked, List<String> listIndexImageName ,int id,String name, double price, double salePrice,
+      List<String> color, List<String> size,
+      int idCategory,int view, String description) async {
+    // final int documentLength = await _firebaseFirestore.collection('list_product').snapshots().length;
+    _firebaseFirestore.collection('list_product').doc(id.toString()).update({
+      'id' : id,
+      'name' : name,
+      'price' : price,
+      'salePrice' : salePrice,
+      'color' : color,
+      'size' : size,
+      'idCategory' : idCategory,
+      'view' : view,
+      'description' : description
+    }).then((value) async {
+      for(int i = 0 ; i < listXFilePicked.length;i++){
+        if( listXFilePicked[i] != null){
+          await  StorageRepository().uploadFileImageProduct(listXFilePicked[i]!, id, i, listIndexImageName[i]);
+          print(listXFilePicked[i]!.name);
+          print(id);
+          print(i);
+          print(listIndexImageName[i]);
+        }
+      }
+    });
+
+  }
   Future<List<Product>> getListProduct() async {
     QuerySnapshot snapshot = await _firebaseFirestore.collection('list_product').get();
     final allData = snapshot.docs.map((doc) {
@@ -191,14 +236,13 @@ class DatabaseService{
   }
 
 
-  Future<List<Product>> getProductWith50Percent({required int page, required int limit}) async{
+  Future<List<Product>> getProductWithFlashSale({required int page, required int limit}) async{
     if (limit <=0 ) return [];
-    await Future.delayed(Duration(seconds: 2));
 
     List<Product> listProduct = [];
     await DatabaseService().getListProduct().then((value){
        for(var x in value){
-         if((100 - (x.getSalePrice!/x.getPrice!)*100).round() >= 50 && x.getSalePrice != 0){
+         if( x.promotionPercent() >= 50 && x.getSalePrice != 0){
            listProduct.add(x);
          }
        }
@@ -207,20 +251,14 @@ class DatabaseService{
     return await listProduct.skip((page - 1) * limit).take(limit).toList();
   }
 
-  Future<List<Product>> getProductWithFlashSale({required int page, required int limit}) async{
+
+
+  Future<List<Product>> getProductWithView({required int page, required int limit}) async{
     if( limit < 0 ) return [];
-    await Future.delayed(Duration(seconds: 2));
 
-    final List<Product> listProduct = [];
-    await DatabaseService().getListProduct().then((value) {
-      for(int i = 0 ; i < value.length ; i++){
-        if(value[i].getSalePrice != 0){
-          listProduct.add(value[i]);
-        }
-      }
-    });
+    List<Product> listProduct = await getProductMaxView();
 
-    return listProduct.skip((page - 1)*limit).take(limit).toList();
+    return await listProduct.skip((page - 1)*limit).take(limit).toList();
   }
 
 
@@ -238,7 +276,20 @@ class DatabaseService{
     });
     return listProduct;
   }
+
+  Future<List<Product>> getPageProducts({required page, required limit})  async {
+    if(limit <= 0) return [];
+
+    await Future.delayed(Duration(seconds: 2));
+
+    final List<Product> listProduct = await DatabaseService().getListProduct();
+
+    return listProduct.skip((page - 1) * limit).take(limit).toList();
+
+  }
+
   Future<List<Product>> getProductWithChar(String char) async {
+    await Future.delayed(Duration(milliseconds: 500));
     List<Product> listProduct = [];
     await DatabaseService().getListProduct().then((value) {
       for(int i = 0 ; i < value.length ; i++){
@@ -262,7 +313,22 @@ class DatabaseService{
         }
       }
     }
-    return listProduct.take(5).toList();
+    return listProduct;
+  }
+
+  Future<List<Product>> getProductWithCategory({required int idCategory,required int itemsPage,required int limitPage}) async {
+    List<Product> listProduct = [];
+   await Future.delayed(Duration(milliseconds: 500));
+    await DatabaseService().getListProduct().then((value) {
+      for(int i = 0 ; i < value.length ; i++){
+        if(idCategory == value[i].getIdCategory){
+          listProduct.add(value[i]);
+        }
+      }
+    });
+
+    return await listProduct.skip((itemsPage - 1) * limitPage).take(limitPage).toList();
+
   }
 
   // Future<Product> getProductInCart(Cart cart) async{
@@ -313,12 +379,13 @@ class DatabaseService{
     return allData;
   }
   
-  Future createNewCategory(int id, String name,String downloadURL, String imageName,) async{
+  Future createNewCategory(int id, String name,String downloadURL, String imageName,String genderStyle) async{
     await _firebaseFirestore.collection('list_category').doc(id.toString()).set({
       'id':id,
       'name' : name ,
       'imageURL' : downloadURL,
       'imageName' : imageName,
+      'genderStyle' : genderStyle,
     });
   }
 

@@ -21,6 +21,15 @@ class InfoUserModel extends ChangeNotifier{
 
   List<Cart> get getListCart => _listCart;
 
+  int _selectIndex = 0;
+
+  int get getSelectIndex => _selectIndex;
+
+  set setSelectIndex(int val){
+    _selectIndex = val;
+    notifyListeners();
+  }
+
   double totalPrice(){
     double total = 0.0;
     for(int i = 0 ; i < _listCart.length ; i++){
@@ -28,7 +37,6 @@ class InfoUserModel extends ChangeNotifier{
     }
     return total;
   }
-
 
   InfoUserModel(){
     listenToInfoUser();
@@ -40,6 +48,8 @@ class InfoUserModel extends ChangeNotifier{
       uid =  firebaseUser?.uid;
       print("UID :$uid");
       _listInfoUser = await DatabaseService(uid).getInfoUser();
+      _listCart = await DatabaseService(uid).getListCartFromUser(_listInfoUser!);
+      _selectIndex = 0;
       notifyListeners();
     });
 
@@ -48,7 +58,6 @@ class InfoUserModel extends ChangeNotifier{
       _listCart = await DatabaseService(uid).getListCartFromUser(_listInfoUser!);
       notifyListeners();
     });
-
 
   }
 

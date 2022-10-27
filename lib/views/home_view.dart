@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:badges/badges.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,38 +22,57 @@ import 'package:strak_shop_project/services/auth.dart';
 import 'package:strak_shop_project/services/colors.dart';
 import 'package:strak_shop_project/services/database.dart';
 import 'package:strak_shop_project/services/storage_repository.dart';
+import 'package:strak_shop_project/views/category_view.dart';
 import 'package:strak_shop_project/views/create_product_view.dart';
 import 'package:strak_shop_project/views/notification_view.dart';
+import 'package:strak_shop_project/views/product_category_view.dart';
 import 'package:strak_shop_project/views/product_detail_view.dart';
 import 'package:strak_shop_project/views/product_favorite_view.dart';
 import 'package:strak_shop_project/views/product_flashsale_view.dart';
+import 'package:strak_shop_project/views/product_top_search_view.dart';
 import 'package:strak_shop_project/views/product_view.dart';
 import 'package:strak_shop_project/views/search_product_view.dart';
+import 'package:strak_shop_project/views/user_detail_view.dart';
 
 import '../models/account.dart';
 import '../models/cart.dart';
 import '../models/info_user_model.dart';
 import '../models/order.dart';
 import '../models/product.dart';
+import 'order_detail_view.dart';
 
 class HomePage extends StatefulWidget{
+
+  String? uid;
+
+  HomePage({required this.uid});
+
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
-  final _auth = AuthService();
-  int _selectIndex = 0;
   bool _isSearch = true;
   String _labelPage = "";
   bool _canCreateProc = false;
+  late List<Widget> _selectPage;
+
+
+  @override
+  void initState() {
+   _selectPage = [
+     DetailHomePage(),
+     DetailExplorePage(),
+     DetailCartPage(),
+     DetailUserPage(),
+   ];
+    super.initState();
+  }
 
 
 
   @override
   Widget build(BuildContext context) {
-    final _account = Provider.of<Account?>(context);
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
       return Scaffold(
         resizeToAvoidBottomInset: true,
@@ -85,22 +105,35 @@ class _HomePageState extends State<HomePage> {
           ) ,
           toolbarHeight: 80,
           actions: [
-            IconButton(icon: Icon(Icons.favorite_border_outlined),color: Colors.grey,onPressed: (){
+            IconButton(icon: Badge(
+              child: Icon(Icons.favorite_border_outlined),
+              showBadge: snapshot.getListInfoUser?.favorite.length == null ? false : true,
+            ),color: Colors.grey,onPressed: (){
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductFavoriteView(listID: snapshot.getListInfoUser?.favorite == null ? [] :  snapshot.getListInfoUser!.favorite ,)));
             },),
-            IconButton(icon: Icon(Icons.notifications_none_outlined),color: Colors.grey,onPressed: (){
+            IconButton(icon: Badge(
+              child: Icon(Icons.notifications_none_outlined),
+            ),color: Colors.grey,onPressed: (){
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPageView()));
             },),
           ],
 
         ) : AppBar(
           backgroundColor: Colors.white,
+          actions: [
+           Container(
+             width: 50,
+             height: 50,
+             decoration: ShapeDecoration(shape: CircleBorder(side: BorderSide(color: StrakColor.colorTheme6,width: 2)),image: DecorationImage(image: AssetImage("assets/images_app/logo_strak_red.png"),fit: BoxFit.fitWidth)),
+           ),
+            SizedBox(width: 30,)
+          ],
           title: Container(
             alignment: Alignment.centerLeft,
             height: 50,
             child: Text("$_labelPage",style: TextStyle(
                 color: StrakColor.colorTheme7,
-                fontSize: 16,
+                fontSize: 20,
                 fontWeight: FontWeight.bold
             ),),
           ),
@@ -108,24 +141,28 @@ class _HomePageState extends State<HomePage> {
           automaticallyImplyLeading: false,
         ),
         floatingActionButton: Visibility(
-          visible: _canCreateProc ? true : false,
+          visible:  snapshot.getListInfoUser?.uid ==  "vepLb8PezZPJfAMbVpDNkePTOef1" ? true : false,
           child: FloatingActionButton(backgroundColor: StrakColor.colorTheme6,onPressed: (){
             Navigator.of(context).push(MaterialPageRoute(builder: (contextr) => CreateNewProducts()));
           },child: Icon(Icons.add_business_outlined,size: 30,color: Colors.blueAccent,)),
         ),
         body: SafeArea(
-          child:_selectPage.elementAt(_selectIndex) ,
+          child:_selectPage.elementAt(snapshot.getSelectIndex) ,
         ),
         bottomNavigationBar: BottomNavigationBar(type:BottomNavigationBarType.fixed,items:<BottomNavigationBarItem> [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined,size: 24),label: "Home",),
           BottomNavigationBarItem(icon: Icon(Icons.search_outlined,size: 24),label: "Explore"),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined,size: 24),label: "Cart"),
+          BottomNavigationBarItem(icon: Badge(badgeContent: Text("${snapshot.getListCart.length}",style: TextStyle(
+            color: Colors.white,
+            fontSize: 12
+          ),),child: Icon(Icons.shopping_cart_outlined),showBadge: snapshot.getListCart.length == 0 ? false : true,),label: "Cart"),
           BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined,size: 24),label: "Account")
-        ],currentIndex: _selectIndex,selectedItemColor: Theme.of(context).primaryColor,onTap:handleClickMenu ,),
+        ],currentIndex: snapshot.getSelectIndex,selectedItemColor: Theme.of(context).primaryColor,onTap:(val) => handleClickMenu(val,snapshot) ,),
       );
     });
   }
-  void handleClickMenu(int val){
+  void handleClickMenu(int val, InfoUserModel snapshot){
+    snapshot.setSelectIndex = val;
     setState(() {
       if(val == 2 || val == 3){
         setState(() {
@@ -143,20 +180,14 @@ class _HomePageState extends State<HomePage> {
           _isSearch = true;
         });
       }
-      _selectIndex = val;
     });
   }
 
-  List<Widget> _selectPage = [
-    DetailHomePage(),
-    DetailExplorePage(),
-    DetailCartPage(),
-    DetailUserPage(),
-  ];
-
 }
-
 class DetailCartPage extends StatefulWidget{
+
+
+
   @override
   State<DetailCartPage> createState() => _DetailCartPageState();
 }
@@ -170,24 +201,22 @@ class _DetailCartPageState extends State<DetailCartPage> {
   Widget build(BuildContext context) {
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
       return Consumer<OrderModel>(builder:(context,snapshotOr,_){
-        return snapshot.getListCart.isNotEmpty ?SingleChildScrollView(
+        return snapshot.getListCart.isNotEmpty ? SingleChildScrollView(
             child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    height: 325,
-                    child: Padding(
-                      padding: EdgeInsets.all(16), child: ListView.separated(
-                      itemCount: snapshot.getListCart.length,
-                      itemBuilder: (context,i) => ProductCartView(currentCart: snapshot.getListCart[i],currentUser: snapshot,),
-                      separatorBuilder: (context,i) => SizedBox(height: 10,),
-                    ),),
-                  ),
+                  Padding(
+                    padding: EdgeInsets.all(16), child: ListView.separated(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemCount: snapshot.getListCart.length,
+                    itemBuilder: (context,i) => ProductCartView(currentCart: snapshot.getListCart[i],currentUser: snapshot,isOrder: false),
+                    separatorBuilder: (context,i) => SizedBox(height: 10,),
+                  ),),SizedBox(height: 15,),
                   Padding(
                     padding: const EdgeInsets.only(left: 16.0,right: 16.0,bottom: 16.0),
                     child: Card(elevation: 8,
-                      child: Padding(
+                      child: Container(
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
@@ -339,7 +368,8 @@ class _DetailCartPageState extends State<DetailCartPage> {
                         ),
                       ),
                     ),
-                  )
+                  ),
+
                 ])) : Center(
                   child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -351,11 +381,22 @@ class _DetailCartPageState extends State<DetailCartPage> {
               child: Icon(Icons.clear,color: Colors.white,size: 30) ,
             ),
             SizedBox(height: 15,),
-            Text("Cart Is Empty",style: TextStyle(
+            Text("Cart is empty",style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: StrakColor.colorTheme7
-            ),)
+            ),),
+            SizedBox(height: 15,),
+            ElevatedButton(style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
+            ),onPressed: (){
+                snapshot.setSelectIndex = 0;
+
+            }, child: Text("Back To Shopping",style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.white
+            ),))
 
           ],
         ),
@@ -378,7 +419,8 @@ class DetailExplorePage extends StatelessWidget{
       child: Column(
         children: [
           CircleAvatar(
-            backgroundImage: NetworkImage(image),
+            backgroundColor: StrakColor.colorTheme6,
+            backgroundImage: CachedNetworkImageProvider(image),
             foregroundColor: StrakColor.colorTheme6,
             maxRadius: 28.0,
           ),
@@ -393,37 +435,80 @@ class DetailExplorePage extends StatelessWidget{
   }
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Consumer<CategoryModel>(builder: (context,snapshot,_){
+      return SingleChildScrollView(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: EdgeInsets.all(16),
-            child: Text("Category",style: TextStyle(
+            child: Text("Man Fashion",style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 14
             ),),
           ),
-          Consumer<CategoryModel>(builder: (context,snapshot,_){
-            return Container(
+             Container(
               padding: EdgeInsets.all(16),
               child: Wrap(
-                spacing: 10,
-                runSpacing: 10,
+                spacing: 15,
+                runSpacing: 15,
                 children: [
                   for(var x in snapshot.getListCategory)
-                  CircleCategory(x.getImageURL, x.getName)
+                    if(x.getGenderStyle == "male") InkWell(onTap: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductCategoryView(idCategory: x.getId, nameCategory: x.getName)));
+                    },child: CircleCategory(x.getImageURL, x.getName))
                 ],
               ),
-            );
-          })
+            ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Text("Woman Fashion",style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 14
+            ),),
+          ),
+          Container(
+            padding: EdgeInsets.all(16),
+            child: Wrap(
+              spacing: 15,
+              runSpacing: 15,
+              children: [
+                for(var x in snapshot.getListCategory)
+                  if(x.getGenderStyle == "female") InkWell(onTap: (){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductCategoryView(idCategory: x.getId, nameCategory: x.getName)));
+                  },child: CircleCategory(x.getImageURL, x.getName))
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16),
+            child: Text("Other",style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 14
+            ),),
+          ),
+          Container(
+            padding: EdgeInsets.all(16),
+            child: Wrap(
+              spacing: 15,
+              runSpacing: 15,
+              children: [
+                for(var x in snapshot.getListCategory)
+                  if(x.getGenderStyle == "both") InkWell(onTap: (){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductCategoryView(idCategory: x.getId, nameCategory: x.getName)));
+                  },child: CircleCategory(x.getImageURL, x.getName))
+              ],
+            ),
+          )
+
         ],
       )
-    );
+    );});
   }
-  
   
 }
 class DetailHomePage extends StatefulWidget{
@@ -444,12 +529,12 @@ class _DetailHomePageState extends State<DetailHomePage> {
   List<Product> _currentListProductFlashSale = [];
   final ScrollController _scrollControllerFlashSale = ScrollController();
 
-  static const int _itemPageMegaSale = 3;
-  int _nextPageMegaSale = 1;
-  bool _loadingMoreMegaSale = true;
-  bool _loadingMegaSale = true;
-  List<Product> _currentListProductMegaSale = [];
-  final ScrollController _scrollControllerMegaSale = ScrollController();
+  static const int _itemPageTopView = 3;
+  int _nextPageTopView = 1;
+  bool _loadingMoreTopView = true;
+  bool _loadingTopView = true;
+  List<Product> _currentListProductTopView = [];
+  final ScrollController _scrollControllerTopView = ScrollController();
 
 
   static const int _itemsPerPage = 4;
@@ -475,7 +560,7 @@ class _DetailHomePageState extends State<DetailHomePage> {
                 _buildIndicator(),
                 _buildListCategory(),
                 _buildListFlashSale(),
-                _buildListMegaSale(),
+                _buildListTopView(),
                 _buildImageRecommendProduct(),])])),
 
         _buildGridLoadDataProduct(),
@@ -497,17 +582,17 @@ class _DetailHomePageState extends State<DetailHomePage> {
     });
     getProductFlashSale();
 
-    _scrollControllerMegaSale.addListener(() {
-      if(!_scrollControllerMegaSale.hasClients || _loadingMegaSale) return;
+    _scrollControllerTopView.addListener(() {
+      if(!_scrollControllerTopView.hasClients || _loadingTopView) return;
 
 
-      final threholdReached = _scrollControllerMegaSale.position.extentAfter < _endReachedThreshold;
+      final threholdReached = _scrollControllerTopView.position.extentAfter < _endReachedThreshold;
 
       if(threholdReached){
-        getProductMegaSale();
+        getProductTopView();
       }
     });
-    getProductMegaSale();
+    getProductTopView();
 
 
     _scrollController.addListener(() {
@@ -526,24 +611,24 @@ class _DetailHomePageState extends State<DetailHomePage> {
   void dispose() {
    _scrollController.dispose();
    _scrollControllerFlashSale.dispose();
-   _scrollControllerMegaSale.dispose();
+   _scrollControllerTopView.dispose();
     super.dispose();
   }
-  Future<void> getProductMegaSale() async  {
-    _loadingMegaSale = true;
+  Future<void> getProductTopView() async  {
+    _loadingTopView = true;
 
-    final listProduct = await DatabaseService().getProductWith50Percent(page: _nextPageFlashSale, limit: _itemPageMegaSale);
+    final listProduct = await DatabaseService().getProductWithView(page: _nextPageTopView, limit: _itemPageTopView);
 
     if (!mounted) return;
 
     setState(() {
-      _currentListProductMegaSale.addAll(listProduct);
-      _nextPageMegaSale++;
+      _currentListProductTopView.addAll(listProduct);
+      _nextPageTopView++;
 
-      if(listProduct.length < _itemPageMegaSale){
-        _loadingMoreMegaSale = false;
+      if(listProduct.length < _itemPageTopView){
+        _loadingMoreTopView = false;
       }
-      _loadingMegaSale = false;
+      _loadingTopView= false;
     });
   }
 
@@ -575,7 +660,7 @@ class _DetailHomePageState extends State<DetailHomePage> {
 
 
     _loading = true;
-    final newProducts = await  getPageProducts(page : _nextPage, limit: _itemsPerPage);
+    final newProducts = await  DatabaseService().getPageProducts(page : _nextPage, limit: _itemsPerPage);
 
     if(!mounted) return;
     setState(() {
@@ -596,27 +681,13 @@ class _DetailHomePageState extends State<DetailHomePage> {
 
   }
 
-  Future<List<Product>> getPageProducts({required page, required limit})  async {
-    if(limit <= 0) return [];
-
-    await Future.delayed(Duration(seconds: 2));
-
-    final List<Product> listProduct = await DatabaseService().getListProduct();
-
-    return listProduct.skip((page - 1) * limit).take(limit).toList();
-
-  }
-  Widget _buildProductItem(BuildContext context,int index){
+  Widget _buildItemProduct(BuildContext context,int index){
     return InkWell(
       onTap: () {
         DatabaseService().updateViewProduct(_currentListProduct[index].getId!);
         Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ProductDetailView(currentProduct: _currentListProduct[index])));
       },
-      child: ProductView(id: _currentListProduct[index].getId!,image: _currentListProduct[index].getImageURL![0],
-          name: _currentListProduct[index].getName!,
-          price: _currentListProduct[index].getPrice!,
-          salePrice: _currentListProduct[index].getSalePrice!,
-          promotion:  _currentListProduct[index].promotionPercent(),
+      child: ProductView(currentProduct: _currentListProduct[index],
           isFavoriteView: false,),
     );
   }
@@ -628,9 +699,8 @@ class _DetailHomePageState extends State<DetailHomePage> {
       child: Column(
         children: [
           CircleAvatar(
-            backgroundImage: NetworkImage(image),
+            backgroundImage: CachedNetworkImageProvider(image),
             foregroundColor: StrakColor.colorTheme6,
-
           ),
           SizedBox(height: 5,),
           FittedBox(child: Text(textCategory,style: TextStyle(
@@ -713,7 +783,9 @@ class _DetailHomePageState extends State<DetailHomePage> {
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14
-              )),onTap: (){},)
+              )),onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => CategoryView()));
+              },)
             ],
           ),
         ),
@@ -721,7 +793,9 @@ class _DetailHomePageState extends State<DetailHomePage> {
           return Container(
             height: 120,
             child: ListView.builder(itemBuilder: (context,index){
-              return CircleCategory(snapshot.getListCategory[index].getImageURL, snapshot.getListCategory[index].getName);
+              return InkWell(onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductCategoryView(idCategory: snapshot.getListCategory[index].getId, nameCategory: snapshot.getListCategory[index].getName)));
+              },child: index <= 10 ? CircleCategory(snapshot.getListCategory[index].getImageURL, snapshot.getListCategory[index].getName) : SizedBox());
             },itemCount: snapshot.getListCategory.length,padding: EdgeInsets.all(16),scrollDirection: Axis.horizontal),
           );
         })
@@ -730,15 +804,11 @@ class _DetailHomePageState extends State<DetailHomePage> {
   }
   Widget _buildProductItemFlashSale(BuildContext context, int index){
     return InkWell(
-      onTap: (){
-        DatabaseService().updateViewProduct(_currentListProductFlashSale[index].getId!);
+      onTap: () async {
+        await DatabaseService().updateViewProduct(_currentListProductFlashSale[index].getId!);
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductDetailView(currentProduct: _currentListProductFlashSale[index])));
       },
-      child: ProductView(id: _currentListProductFlashSale[index].getId!,image: _currentListProductFlashSale[index].getImageURL![0],
-        name: _currentListProductFlashSale[index].getName!,
-        price: _currentListProductFlashSale[index].getPrice!,
-        salePrice: _currentListProductFlashSale[index].getSalePrice!,
-        promotion: _currentListProductFlashSale[index].promotionPercent(),
+      child: ProductView(currentProduct: _currentListProductFlashSale[index],
         isFavoriteView: false,),
     );
   }
@@ -760,7 +830,10 @@ class _DetailHomePageState extends State<DetailHomePage> {
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14
-              )),onTap: (){},)
+              )),onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductFlashSaleView(sliderTime: _buildImageTransition())));
+
+              },)
             ],
           ),
         ),
@@ -772,7 +845,8 @@ class _DetailHomePageState extends State<DetailHomePage> {
                 controller: _scrollControllerFlashSale,
                 scrollDirection: Axis.horizontal,
                 children: [
-                  ListView.separated(physics: NeverScrollableScrollPhysics(),shrinkWrap: true,scrollDirection: Axis.horizontal,itemBuilder: _buildProductItemFlashSale, separatorBuilder: (context, index) => SizedBox(width: 15), itemCount: _currentListProductFlashSale.length),
+                  ListView.separated(physics: NeverScrollableScrollPhysics(),shrinkWrap: true,scrollDirection: Axis.horizontal,itemBuilder: (context,index) =>index <= 10 ? _buildProductItemFlashSale(context,index) : SizedBox(),
+                      separatorBuilder: (context, index) => SizedBox(width: 15), itemCount: _currentListProductFlashSale.length),
                   _loadingMoreFlashSale ? Container(
                     padding: EdgeInsets.only(left: 16),
                     alignment: Alignment.center,
@@ -789,22 +863,18 @@ class _DetailHomePageState extends State<DetailHomePage> {
     );
   }
 
-  Widget _buildProductItemMegaSale(BuildContext context, int index){
+  Widget _buildProductItemTopView(BuildContext context, int index){
     return InkWell(
       onTap: (){
-        DatabaseService().updateViewProduct(_currentListProductMegaSale[index].getId!);
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductDetailView(currentProduct: _currentListProductMegaSale[index])));
+        DatabaseService().updateViewProduct(_currentListProductTopView[index].getId!);
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductDetailView(currentProduct: _currentListProductTopView[index])));
       },
-      child: ProductView(id: _currentListProductMegaSale[index].getId!,image: _currentListProductMegaSale[index].getImageURL![0],
-        name: _currentListProductMegaSale[index].getName!,
-        price: _currentListProductMegaSale[index].getPrice!,
-        salePrice: _currentListProductMegaSale[index].getSalePrice!,
-        promotion:  _currentListProductMegaSale[index].promotionPercent(),
+      child: ProductView(currentProduct: _currentListProductTopView[index],
         isFavoriteView: false,),
     );
   }
 
-  Widget _buildListMegaSale(){
+  Widget _buildListTopView(){
     return Column(
       children: [
         Padding(
@@ -812,7 +882,7 @@ class _DetailHomePageState extends State<DetailHomePage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Mega Sale",style: TextStyle(
+              Text("Top Search",style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                   fontSize: 14
@@ -821,7 +891,10 @@ class _DetailHomePageState extends State<DetailHomePage> {
                   color: Theme.of(context).primaryColor,
                   fontWeight: FontWeight.bold,
                   fontSize: 14
-              )),onTap: (){},)
+              )),onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductTopSearchView()));
+
+              },)
             ],
           ),
         ),
@@ -830,11 +903,11 @@ class _DetailHomePageState extends State<DetailHomePage> {
             padding: EdgeInsets.all(14),
             child: Container(
               child: ListView(
-                controller: _scrollControllerMegaSale,
+                controller: _scrollControllerTopView,
                 scrollDirection: Axis.horizontal,
                 children: [
-                  ListView.separated(physics: NeverScrollableScrollPhysics(),shrinkWrap: true,scrollDirection: Axis.horizontal,itemBuilder: _buildProductItemMegaSale, separatorBuilder: (context, index) => SizedBox(width: 15), itemCount: _currentListProductMegaSale.length),
-                  _loadingMoreMegaSale ? Container(
+                  ListView.separated(physics: NeverScrollableScrollPhysics(),shrinkWrap: true,scrollDirection: Axis.horizontal,itemBuilder: (context,index) => index <= 10 ? _buildProductItemTopView(context,index) : SizedBox(), separatorBuilder: (context, index) => SizedBox(width: 15), itemCount: _currentListProductTopView.length),
+                  _loadingMoreTopView ? Container(
                     padding: EdgeInsets.only(left: 16),
                     alignment: Alignment.center,
                     child: SpinKitChasingDots(
@@ -896,7 +969,7 @@ class _DetailHomePageState extends State<DetailHomePage> {
     return SliverPadding(padding: EdgeInsets.all(16),sliver:
     SliverGrid(
     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,childAspectRatio: 165/258,crossAxisSpacing: 16,mainAxisSpacing: 16),
-    delegate: SliverChildBuilderDelegate(_buildProductItem,childCount: _currentListProduct.length),
+    delegate: SliverChildBuilderDelegate(_buildItemProduct,childCount: _currentListProduct.length),
     ));
   }
 
@@ -926,29 +999,72 @@ class DetailUserPage extends StatelessWidget{
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text("Profile",style: TextStyle(
-              color: StrakColor.colorTheme7,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),),
-            leading: Icon(Icons.account_circle,color: Colors.lightBlueAccent,),
+          InkWell(
+            onTap: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => UserDetailView()));
+            },
+            child: ListTile(
+              title: Text("Profile",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),),
+              leading: Icon(Icons.account_circle,color: Colors.lightBlueAccent,),
+            ),
           ),
-          ListTile(
-            title: Text("Order",style: TextStyle(
-              color: StrakColor.colorTheme7,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),),
-            leading: Icon(Icons.sticky_note_2_outlined,color: Colors.lightBlueAccent,),
+          Divider(height: 3,color: StrakColor.colorTheme6),
+          InkWell(
+            onTap: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => OrderView(currentUserUid: snapshot.getListInfoUser!.uid,)));
+            },
+            child: ListTile(
+              title: Text("Order",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),),
+              leading: Icon(Icons.sticky_note_2_outlined,color: Colors.lightBlueAccent,),
+            ),
           ),
-          ListTile(
-            title: Text("Sign Out",style: TextStyle(
-              color: StrakColor.colorTheme7,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),),
-            leading: Icon(Icons.exit_to_app,color: Colors.lightBlueAccent,),
+          Divider(height: 3,color: StrakColor.colorTheme6),
+          InkWell(
+            onTap: (){
+              showDialog(context: context, builder: (context) => AlertDialog(
+                title: Text("Log out"),
+                content: Container(
+                  width: 100,
+                  height: 100,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text("Are you sure you want to log out?"),
+                      SizedBox(height: 10,),
+                     Row(
+                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                       children: [
+                         ElevatedButton(onPressed: (){
+                           Navigator.of(context).dispose();
+                         }, child: Text("Cancel")),
+                         ElevatedButton(onPressed: (){
+                            Navigator.of(context).pop();
+                            _authService.signOut();
+                         }, child: Text("OK"))
+                       ],
+                     )
+                    ],
+                  ),
+                ),
+
+              ));
+            },
+            child: ListTile(
+              title: Text("Sign Out",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),),
+              leading: Icon(Icons.exit_to_app,color: Colors.lightBlueAccent,),
+            ),
           ),
 
 
@@ -959,21 +1075,7 @@ class DetailUserPage extends StatelessWidget{
 
 }
 
-// InkWell(onTap: () async{
-// final ImagePicker _picked = ImagePicker();
-// final XFile? image =await _picked.pickImage(source: ImageSource.gallery);
-// if(image?.name != null){
-// StorageRepository().uploadFileImageAvatar(image!, 'user', snapshot.getListInfoUser!.uid,snapshot.getListInfoUser!.imageName);
-//
-// }
-// },
-// child: snapshot.getListInfoUser?.imageUrls == "" ? CircleAvatar(
-// child: Icon(Icons.account_circle_outlined),
-// ) : CircleAvatar(backgroundImage: CachedNetworkImageProvider(snapshot.getListInfoUser?.imageUrls ?? "https://us.123rf.com/450wm/yehorlisnyi/yehorlisnyi2104/yehorlisnyi210400016/167492439-no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-comin.jpg?ver=6"),)
-// ),
-// ElevatedButton(onPressed: () async{
-// _authService.signOut();
-// }, child: Text("Sign Out"))
+
 
 class SelectPage extends StatelessWidget{
   final String select;

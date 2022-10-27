@@ -9,21 +9,30 @@ class BlocSearch{
   List<Product> get getListCurrentSearch => _listCurrentSearch;
 
 
+
+
   final _searchController = StreamController<String>();
   final _stateController = StreamController<List<Product>>.broadcast();
   StreamController<List<Product>> get getStateController => _stateController;
+
+  final _loadingController = StreamController<bool>();
+  StreamController<bool> get getLoadingController => _loadingController;
 
   void addChar(String char){
     _searchController.sink.add(char);
   }
 
+
   BlocSearch(){
     _searchController.stream.debounceTime(Duration(milliseconds: 500)).listen((String char) async {
+      _loadingController.sink.add(true);
       print("Current Search After 2 Seconds: $char");
       _listCurrentSearch = await DatabaseService().getProductWithChar(char);
       _stateController.sink.add(_listCurrentSearch);
+      _loadingController.sink.add(false);
     });
   }
+
 
 
 }

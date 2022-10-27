@@ -1,5 +1,6 @@
-
 import 'dart:io';
+import 'package:http/http.dart' as http;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,26 +8,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:strak_shop_project/models/category.dart';
-import 'package:strak_shop_project/models/category_model.dart';
-import 'package:strak_shop_project/models/product.dart';
-import 'package:strak_shop_project/models/product_model.dart';
-import 'package:strak_shop_project/services/database.dart';
-import 'package:strak_shop_project/services/storage_repository.dart';
-
+import 'package:path/path.dart' as Path;
+import '../models/category.dart';
+import '../models/category_model.dart';
+import '../models/product.dart';
+import '../models/product_model.dart';
 import '../services/colors.dart';
+import '../services/database.dart';
+import '../services/storage_repository.dart';
 
-class CreateNewProducts extends StatefulWidget{
+
+
+class EditProductView extends StatefulWidget{
+  Product currentProduct;
+
+  EditProductView({required this.currentProduct});
 
   @override
-  State<CreateNewProducts> createState() => _CreateNewProductsState();
+  State<EditProductView> createState() => _EditProductViewState();
 }
 
-
-class _CreateNewProductsState extends State<CreateNewProducts> {
-  Product _product = Product(0,"", 0.0, 0.0, [], [], ["","","","",""], ["","","","",""], 0, 0, "");
+class _EditProductViewState extends State<EditProductView> {
 
   Color _currentSelectColor = Colors.red;
 
@@ -34,6 +39,9 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
 
   List<File?> _listFilePicked = <File?>[null,null,null,null,null];
   List<XFile?> _listXFilePicked = <XFile?>[null,null,null,null,null];
+  List<String>  _listImageName = <String>["","","","",""];
+
+
 
   int _indexActive = 0;
 
@@ -53,7 +61,34 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
 
   @override
   void initState() {
+    _textEditingControllerName.text = widget.currentProduct.getName!;
+    _textEditingControllerPrice.text = widget.currentProduct.getPrice!.toString();
+    _textEditingControllerSalePrice.text = widget.currentProduct.getSalePrice!.toString();
+    _textEditingControllerDescription.text = widget.currentProduct.getDescription!;
+    _currentSelectCategory = widget.currentProduct.getIdCategory;
+    convertFileImage();
+
     super.initState();
+  }
+
+  void convertFileImage() async {
+    for(int i = 0 ; i < widget.currentProduct.getListImageURL!.length;i++){
+      _listFilePicked[i] = (await _fileFromImageUrl(widget.currentProduct.getListImageURL![i]));
+      _listXFilePicked[i] = XFile(_listFilePicked[i]!.path);
+      _listImageName[i] = _listXFilePicked[i]!.name;
+    }
+  }
+
+  Future<File> _fileFromImageUrl(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    final documentDirectory = await getApplicationDocumentsDirectory();
+    final String imageName = imageUrl.split('/').last;
+    final file = File(Path.join(documentDirectory.path,imageName));
+
+    file.writeAsBytesSync(response.bodyBytes);
+
+    return file;
+
   }
 
   @override
@@ -109,10 +144,6 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
   @override
   Widget build(BuildContext context) {
     return  Consumer<ProductModel>(builder:(context,snapshot,_){
-      if(snapshot.getListProduct != []){
-        _product.setId = snapshot.getListProduct.length;
-        print(_product.getId);
-      }
       return Scaffold(
         body: SafeArea(
           child: Stack(
@@ -154,6 +185,9 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
 
 
   Widget titleTheme(BuildContext context) {
+    _listFilePicked.forEach((element) {
+      print(element);
+    });
     return Column(
       children: [
         CarouselSlider(items: [0,1,2,3,4].map((i) {
@@ -172,8 +206,8 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
                   if(_listXFilePicked[i] != null){
                     setState(() {
                       _listFilePicked[i] = File(_listXFilePicked[i]!.path);
-                      _product.setIndexImageName(i, _listXFilePicked[i]!.name);
-                      _product.getImageName!.forEach((element) {
+                      _listImageName[i] = _listXFilePicked[i]!.name;
+                      widget.currentProduct.getImageName!.forEach((element) {
                         print(element);
                       });
                     });
@@ -186,7 +220,7 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
             );
           });
         }).toList(), options: CarouselOptions(
-           viewportFraction: 1,
+            viewportFraction: 1,
             height: 200,
             onPageChanged: (value,_) {
               setState(() {
@@ -201,7 +235,7 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
               dotColor: StrakColor.colorTheme6,
               dotWidth: 12,
               dotHeight: 12,
-            activeDotColor: Colors.blue
+              activeDotColor: Colors.blue
           ),),
         SizedBox(height: 15,)
       ],
@@ -215,12 +249,12 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
         padding: EdgeInsets.all(8),
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
-          border: Border.all(width: 3,color: StrakColor.colorTheme6)
+            border: Border.all(width: 3,color: StrakColor.colorTheme6)
         ),
         child: Wrap(
           alignment: WrapAlignment.start,
           direction: Axis.horizontal,
-          children: _product.getListColor == [] ? [] : [
+          children: widget.currentProduct.getListColor == [] ? [] : [
             InkWell(
               child: Chip(label: Text("Add Color"),avatar: CircleAvatar(child: Icon(Icons.add),)),onTap: (){
               showDialog(context: context, builder:(context) => StatefulBuilder(builder: (context,StateSetter setStates){
@@ -250,8 +284,8 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
                           children: [
                             Expanded(child: TextButton(onPressed: () {
                               setState(() {
-                                if(!_product.getListColor!.contains(_currentSelectColor)){
-                                  _product.addColor(_currentSelectColor.toString());
+                                if(!widget.currentProduct.getListColor!.contains(_currentSelectColor)){
+                                  widget.currentProduct.addColor(_currentSelectColor.toString());
                                 }
                               });
                               Navigator.of(context).pop(); }, child: Text("Select"))),
@@ -283,7 +317,7 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
             ),
             SizedBox(width: 5,)
             ,
-            for(var x in _product.getListColor!)
+            for(var x in widget.currentProduct.getListColor!)
               chipColor(x)
           ],
         ),
@@ -298,14 +332,14 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
     Color otherColor = new Color(value);
     return Padding(padding: EdgeInsets.only(right: 4),child: Chip(label: Text(colorToHex(otherColor)),onDeleted: (){
       setState(() {
-        _product.deleteChipColor(colorString);
+        widget.currentProduct.deleteChipColor(colorString);
       });
     }, avatar: CircleAvatar(backgroundColor: otherColor ,),),);
   }
   Widget chipSize(String textSize){
     return Padding(padding: EdgeInsets.only(right: 4),child: Chip(label: Text(textSize),onDeleted: (){
       setState(() {
-        _product.deleteChipSize(textSize);
+        widget.currentProduct.deleteChipSize(textSize);
       });
     },),);
   }
@@ -322,52 +356,52 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
         child: Wrap(
           alignment: WrapAlignment.start,
           direction: Axis.horizontal,
-          children:  _product.getListSize == [] ? [] : [
+          children:  widget.currentProduct.getListSize == [] ? [] : [
             InkWell(
               child: Chip(label: Text("Add Custom Size"),avatar: CircleAvatar(child: Icon(Icons.add),)),onTap: (){
               showDialog(context: context, builder:(context) => StatefulBuilder(builder: (context,StateSetter setStates){
                 return AlertDialog(
-                  title: Text("Custom Size Product"),
-                  content: Container(
-                    width: 200,
-                    height: 200,
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _textEditingControllerSize,
-                          decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
-                            ),
-                            border: OutlineInputBorder(
-                                borderSide: BorderSide(width:3)
-                            ),
-                            prefixIcon: Icon(Icons.drive_file_rename_outline,size: 24,color: _checkNameError ? Colors.red : null,),
-                            hintText: "Enter Size",
-                          ),style: TextStyle(
-                            fontSize: 12
-                        ),
-                        ),
-                        SizedBox(height: 15,),
-                        ElevatedButton(onPressed: (){
-                          setState(() {
-                            if(!_product.getListSize!.contains(_textEditingControllerSize.text)){
-                              _product.addSize(_textEditingControllerSize.text);
-                            }
-                          });
-                          _textEditingControllerSize.clear();
-                          Navigator.of(context).pop();
-                        }, child: Text("Create"))
-                      ],
-                    ),
-                  )
+                    title: Text("Custom Size Product"),
+                    content: Container(
+                      width: 200,
+                      height: 200,
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _textEditingControllerSize,
+                            decoration: InputDecoration(
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                              ),
+                              border: OutlineInputBorder(
+                                  borderSide: BorderSide(width:3)
+                              ),
+                              prefixIcon: Icon(Icons.drive_file_rename_outline,size: 24,color: _checkNameError ? Colors.red : null,),
+                              hintText: "Enter Size",
+                            ),style: TextStyle(
+                              fontSize: 12
+                          ),
+                          ),
+                          SizedBox(height: 15,),
+                          ElevatedButton(onPressed: (){
+                            setState(() {
+                              if(widget.currentProduct.getListSize!.contains(_textEditingControllerSize.text)){
+                                widget.currentProduct.addSize(_textEditingControllerSize.text);
+                              }
+                            });
+                            _textEditingControllerSize.clear();
+                            Navigator.of(context).pop();
+                          }, child: Text("Create"))
+                        ],
+                      ),
+                    )
                 );
               }));
             },
             ),
             SizedBox(width: 5,)
             ,
-            for(var x in _product.getListSize!)
+            for(var x in widget.currentProduct.getListSize!)
               chipSize(x)
           ],
         ),
@@ -435,14 +469,14 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
           TextFormField(
             controller: _textEditingControllerDescription,
             decoration: InputDecoration(
-              enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
-              ),
-              border: OutlineInputBorder(
-                borderSide: BorderSide(width:3),
-              ),
-              hintText: "Enter Description",
-              suffixIcon: Icon(Icons.edit,color: Colors.white,size: 24,)
+                enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(width:3),
+                ),
+                hintText: "Enter Description",
+                suffixIcon: Icon(Icons.edit,color: Colors.white,size: 24,)
             ),
             style: TextStyle(fontSize: 12),
             keyboardType: TextInputType.multiline,
@@ -452,27 +486,27 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
           ),
 
           SizedBox(width: double.infinity,child: ElevatedButton(onPressed: () async{
-              if(_formKey.currentState!.validate()){
-                setState(() {
-                  _isLoading = true;
-                });
-                _product.setName = _textEditingControllerName.text;
-                _product.setPrice = double.tryParse(_textEditingControllerPrice.text)!;
-                _product.setSalePrice = double.tryParse(_textEditingControllerSalePrice.text)!;
-                _product.setDescription = _textEditingControllerDescription.text;
-                DatabaseService().createNewProduct(_listXFilePicked, _product.getListImageName!, _product.getId!, _product.getName!, _product.getPrice!,
-                    _product.getSalePrice!, _product.getListColor!, _product.getListSize!, _product.getIdCategory!, _product.getView!, _product.getDescription!).then((value) {
-                });
+            if(_formKey.currentState!.validate()){
+              setState(() {
+                _isLoading = true;
+              });
+              widget.currentProduct.setName = _textEditingControllerName.text;
+              widget.currentProduct.setPrice = double.tryParse(_textEditingControllerPrice.text)!;
+              widget.currentProduct.setSalePrice = double.tryParse(_textEditingControllerSalePrice.text)!;
+              widget.currentProduct.setDescription = _textEditingControllerDescription.text;
+              DatabaseService().createNewProduct(_listXFilePicked, _listImageName, widget.currentProduct.getId!, widget.currentProduct.getName!, widget.currentProduct.getPrice!,
+                  widget.currentProduct.getSalePrice!, widget.currentProduct.getListColor!, widget.currentProduct.getListSize!, widget.currentProduct.getIdCategory!, widget.currentProduct.getView!,widget.currentProduct.getDescription!).then((value) {
+              });
 
-                await Future.delayed(Duration(seconds: 5)).then((value) {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Create Product Success")));
-                });
+              await Future.delayed(Duration(seconds: 5)).then((value) {
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Create Product Success")));
+              });
 
-              }
-              else {
-                print("Có lỗi xảy ra");
-              }
+            }
+            else {
+              print("Có lỗi xảy ra");
+            }
           }, child: Text("Create Product"))),
           SizedBox(
             height: 16,
@@ -499,7 +533,7 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
                 }).toList() , onChanged: (val) {
                   setState(() {
                     _currentSelectCategory = val;
-                    _product.setIdCategory = val!;
+                    widget.currentProduct.setIdCategory = val!;
                   });
                 },hint: Text("Select Category"),value: _currentSelectCategory,icon: Icon(Icons.arrow_drop_down),iconSize: 30,isExpanded: true,underline:  DropdownButtonHideUnderline(child: Container(),),),
               ),
@@ -586,34 +620,34 @@ class _DialogCreateCategoryState extends State<DialogCreateCategory> {
                 Container(
                   padding: EdgeInsets.only(right: 16,left: 16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: StrakColor.colorTheme6,width: 3)
+                      border: Border.all(color: StrakColor.colorTheme6,width: 3)
                   ),
                   child: DropdownButton(items: menuFashion.map<DropdownMenuItem<String>>((String val) {
                     return DropdownMenuItem<String>(
                       value: val,
                       child: Text(val),
-                  );
+                    );
                   }).toList() , onChanged: (String? val) {
                     setState(() {
-                     _selectFashion = val!;
-                     _category.genderStyle = val!.toLowerCase();
+                      _selectFashion = val!;
+                      _category.genderStyle = val!.toLowerCase();
                     });
                   },hint: Text("Select Fashion"),value: _selectFashion,icon: Icon(Icons.arrow_drop_down),iconSize: 30,isExpanded: true,underline:  DropdownButtonHideUnderline(child: Container(),),),
                 ),
                 SizedBox(height: 10,),
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.end,
-                 children: [
-                   ElevatedButton(onPressed: (){
-                     Navigator.of(context).pop();
-                   }, child: Text("Cancel")),
-                   SizedBox(width: 20,),
-                   ElevatedButton(onPressed: (){
-                     StorageRepository().uploadFileImageCategory(_image!,_category.getId ,_textEditingControllerNameCategory.text, _category.getImageName,_category.getGenderStyle);
-                     Navigator.of(context).pop();
-                   }, child: Text("Create"))
-                 ],
-               )
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(onPressed: (){
+                      Navigator.of(context).pop();
+                    }, child: Text("Cancel")),
+                    SizedBox(width: 20,),
+                    ElevatedButton(onPressed: (){
+                      StorageRepository().uploadFileImageCategory(_image!,_category.getId ,_textEditingControllerNameCategory.text, _category.getImageName,_category.getGenderStyle);
+                      Navigator.of(context).pop();
+                    }, child: Text("Confirm"))
+                  ],
+                )
               ],
             ),
           ),

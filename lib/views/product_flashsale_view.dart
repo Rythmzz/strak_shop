@@ -49,11 +49,7 @@ class _ProductFlashSaleViewState extends State<ProductFlashSaleView> {
   }
   
   Widget _buildItemProduct(BuildContext context, int index){
-    return ProductView(id: _currentListProduct[index].getId!,isFavoriteView: false,image: _currentListProduct[index].getImageURL![0],
-        name: _currentListProduct[index].getName!,
-        price: _currentListProduct[index].getPrice!,
-        salePrice: _currentListProduct[index].getSalePrice!,
-        promotion:  _currentListProduct[index].promotionPercent());
+    return ProductView(currentProduct: _currentListProduct[index],isFavoriteView: false);
   }
 
 
@@ -125,7 +121,7 @@ class _ProductFlashSaleViewState extends State<ProductFlashSaleView> {
   Future<void> _getProduct() async {
     _isLoading = true;
 
-    final List<Product>  listProduct = await DatabaseService().getProductWith50Percent(page: _nextPage , limit: _itemPage);
+    final List<Product>  listProduct = await DatabaseService().getProductWithFlashSale(page: _nextPage , limit: _itemPage);
 
     if(!mounted) return;
 

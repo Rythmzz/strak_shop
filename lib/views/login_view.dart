@@ -5,9 +5,15 @@ import 'package:provider/provider.dart';
 import 'package:strak_shop_project/services/auth.dart';
 import 'package:strak_shop_project/services/colors.dart';
 import 'package:strak_shop_project/services/database.dart';
+import 'package:strak_shop_project/views/home_view.dart';
 import 'package:strak_shop_project/views/register_view.dart';
 
+import '../models/account.dart';
+
 class LoginPage extends StatefulWidget{
+  String? uid;
+  LoginPage({required this.uid});
+
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -19,11 +25,31 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _checkAccountError = false;
   bool _checkPasswordError =false;
+  bool _loadingPage = true;
 
   final TextEditingController _textEditingControllerAccount = TextEditingController();
   final TextEditingController _textEditingControllerPassword = TextEditingController();
 
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      await Future.delayed(Duration(seconds: 2));
+      if(!mounted) return;
+      if(widget.uid == null) {
+        setState(() {
+          _loadingPage = false;
+        });
+      }
+    });
+
+    super.initState();
+  }
+
+
+
+
 
   String? validateAccount (String? input){
       if (input!.isEmpty){
@@ -82,7 +108,20 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               )
             ),
-         )
+         ),
+          Visibility(visible: _loadingPage == true ? true : false,
+            child: Scaffold(
+              backgroundColor: Colors.red,
+              body: Center(
+                child: Container(
+                  width: 100,
+                  height:100,
+                  decoration: ShapeDecoration(shape: CircleBorder(),image: DecorationImage(image: AssetImage("assets/images_app/logo_strak_white.png"),fit: BoxFit.fitWidth)),
+                )
+                ),
+              ),
+            ),
+
         ],
 
       )
@@ -95,14 +134,9 @@ class _LoginPageState extends State<LoginPage> {
     return Column(
       children: [
         Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-              color: StrakColor.colorTheme6,
-              border: Border.all(width: 2,color: StrakColor.colorTheme4)
-          ),
-          child: Image.asset("assets/images_app/logo_strak.png"),
+          width: 100,
+          height: 100,
+          child: Image.asset("assets/images_app/logo_strak_red.png"),
         ),
         SizedBox(
           height: 16,
@@ -199,7 +233,9 @@ class _LoginPageState extends State<LoginPage> {
 
             // await _auth.loginWithAsynonmous();
           }
-        }, child: Text("Sign In"))),
+        }, child: Text("Sign In"),style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
+        ))),
       SizedBox(
         height: 16,
       )
@@ -310,8 +346,14 @@ class _LoginPageState extends State<LoginPage> {
                 color: Colors.grey,
                 fontSize: 12
             ),),
-            InkWell(onTap: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterPage()));
+            InkWell(onTap: () async {
+              final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterPage()));
+
+              if(!mounted) return;
+
+              setState(() {
+                _loadingPage = result;
+              });
             },
               child: Text("Register",style: TextStyle(
                   color: Colors.blue,

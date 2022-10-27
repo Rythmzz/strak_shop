@@ -38,8 +38,9 @@ class _ProductFavoriteViewState extends State<ProductFavoriteView> {
           title: Text("Favorite Product", style: TextStyle(
               fontWeight: FontWeight.bold,
               color: StrakColor.colorTheme7,
-              fontSize: 16
+              fontSize: 20
           ),),
+          toolbarHeight: 80,
         ),
         body: SafeArea(child: CustomScrollView(
           slivers: [
@@ -49,12 +50,11 @@ class _ProductFavoriteViewState extends State<ProductFavoriteView> {
                     padding: EdgeInsets.all(16),
                     sliver: SliverGrid(delegate:SliverChildBuilderDelegate((context,index){
                       return snapshot?.data == null ? Center(
-                        child: Text("Nothing"),
-                      )  : ProductView(id: snapshot.data![index].getId!,image: snapshot.data![index].getImageURL![0],
-                        name: snapshot.data![index].getName!,
-                        price: snapshot.data![index].getPrice!,
-                        salePrice: snapshot.data![index].getSalePrice!,
-                        promotion: snapshot.data![index].promotionPercent(), isFavoriteView:true,);
+                        child: SpinKitChasingDots(
+                          color: Theme.of(context).primaryColor,
+                          size: 50,
+                        ),
+                      ) : ProductView(currentProduct: snapshot.data![index], isFavoriteView:true,);
                     },childCount: snapshot.data?.length), gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2,mainAxisSpacing: 16,crossAxisSpacing: 16,childAspectRatio: 165/248)),
                   );
 

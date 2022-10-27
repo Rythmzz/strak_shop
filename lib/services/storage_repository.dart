@@ -67,14 +67,14 @@ class StorageRepository{
 
 
 
-  Future<void> uploadFileImageCategory(XFile image, int id, String name, String imageNameOld) async{
+  Future<void> uploadFileImageCategory(XFile image, int id, String name, String imageNameOld,String genderStyle) async{
     if (imageNameOld != ""){
       await _storage.ref('category/category_$id/').child(imageNameOld).delete();
     }
     try{
       await _storage.ref('category/category_$id/${image.name}').putFile(File(image.path)).then((p0) async {
         String downloadURL = await _storage.ref('category/category_$id/${image.name}').getDownloadURL();
-        return DatabaseService().createNewCategory(id, name, downloadURL, image.name);
+        return DatabaseService().createNewCategory(id, name, downloadURL, image.name,genderStyle);
       });
     }
     catch(e){

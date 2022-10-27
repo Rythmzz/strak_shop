@@ -112,37 +112,43 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(child:
-      Stack(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            alignment: Alignment.center,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  titleTheme(),
-                  inputForm(),
-                  loginAccount()
-                ],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.of(context).pop(false);
+        return false;
+      },
+      child: Scaffold(
+        body: SafeArea(child:
+        Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    titleTheme(),
+                    inputForm(),
+                    loginAccount()
+                  ],
+                ),
               ),
             ),
-          ),
-          Visibility(
-            visible: _isLoading ? true : false,
-            child: Scaffold(
-                backgroundColor: Colors.black26,
-                body: Center(
-                  child: SpinKitChasingDots(
-                    color: Theme.of(context).primaryColor,
-                    size: 50,
-                  )),
+            Visibility(
+              visible: _isLoading ? true : false,
+              child: Scaffold(
+                  backgroundColor: Colors.black26,
+                  body: Center(
+                    child: SpinKitChasingDots(
+                      color: Theme.of(context).primaryColor,
+                      size: 50,
+                    )),
+              ),
             ),
-          ),
-        ],
+          ],
 
-      )
+        )
+        ),
       ),
     );
   }
@@ -152,14 +158,9 @@ class _RegisterPageState extends State<RegisterPage> {
     return Column(
       children: [
         Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(16)),
-              color: StrakColor.colorTheme6,
-              border: Border.all(width: 2,color: StrakColor.colorTheme4)
-          ),
-          child: Image.asset("assets/images_app/logo_strak.png"),
+          width: 100,
+          height: 100,
+          child: Image.asset("assets/images_app/logo_strak_red.png"),
         ),
         SizedBox(
           height: 16,
@@ -344,7 +345,9 @@ class _RegisterPageState extends State<RegisterPage> {
               Navigator.of(context).pop();
             }
           }
-        }, child: Text("Sign In"))),
+        }, child: Text("Sign In"),style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
+        ))),
         SizedBox(
           height: 16,
         ),
@@ -373,7 +376,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 fontSize: 12
             ),),
             InkWell(onTap: (){
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(false);
             },
               child: Text("Sign In",style: TextStyle(
                   color: Colors.blue,

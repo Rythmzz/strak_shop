@@ -7,7 +7,6 @@ import 'package:strak_shop_project/models/info_user_model.dart';
 import 'package:strak_shop_project/models/order_model.dart';
 import 'package:strak_shop_project/models/product.dart';
 import 'package:strak_shop_project/models/product_model.dart';
-import 'package:strak_shop_project/models/router_provider.dart';
 import 'package:strak_shop_project/services/auth.dart';
 import 'package:strak_shop_project/views/home_view.dart';
 import 'package:strak_shop_project/views/login_view.dart';
@@ -23,6 +22,7 @@ main() async{
 
 class MyApp extends StatelessWidget{
 
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -34,10 +34,10 @@ class MyApp extends StatelessWidget{
         ChangeNotifierProvider(create: (context) => OrderModel()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: LayoutBuilder(builder: (context,constraint){
            String? currentUID = Provider.of<Account?>(context)?.uid;
-           print(currentUID);
-             return currentUID == null ? LoginPage() : HomePage();
+             return currentUID == null ? LoginPage(uid: currentUID,) : HomePage(uid: currentUID,);
         })
         ),
     );

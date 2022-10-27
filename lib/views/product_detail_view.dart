@@ -9,6 +9,8 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:strak_shop_project/models/info_user_model.dart';
 import 'package:strak_shop_project/services/colors.dart';
 import 'package:strak_shop_project/services/database.dart';
+import 'package:strak_shop_project/views/edit_product_view.dart';
+import 'package:strak_shop_project/views/search_product_view.dart';
 
 import '../models/cart.dart';
 import '../models/product.dart';
@@ -26,7 +28,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   int _indexActive = 0;
 
-  String _selectSize ="";
+  String _selectSize = "";
   Color? _selectColor;
   List<Color> _currentListColor = [];
 
@@ -39,6 +41,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
      int value = int.parse(valueString, radix: 16);
      _selectColor = new Color(value);
      _currentListColor.add(_selectColor!);
+   }
+   if(widget.currentProduct.getListSize.isNotEmpty){
+     _selectSize = widget.currentProduct.getListSize[0];
    }
     super.initState();
   }
@@ -53,15 +58,21 @@ class _ProductDetailViewState extends State<ProductDetailView> {
            foregroundColor: Colors.grey,
            backgroundColor: Colors.white,
            title: Text(widget.currentProduct.getName!.length < 20 ? widget.currentProduct.getName! : "${widget.currentProduct.getName!.substring(0,20)}...",style: TextStyle(
-               color: StrakColor.colorTheme7
+               color: StrakColor.colorTheme7,
+             fontSize: 20
            ),),
+           toolbarHeight: 80,
            actions: [
-             Icon(Icons.search_outlined),
-             SizedBox(width: 5,),
-             Icon(Icons.menu)
+             IconButton(onPressed: (){
+               Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchProductView()));
+             }, icon:Icon(Icons.search_outlined))
+            ,
+            snapshot.getListInfoUser?.email == "admin968@gmail.com" ?  IconButton(onPressed: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditProductView(currentProduct: widget.currentProduct)));
+            },icon:Icon(Icons.settings)) :  IconButton(onPressed: (){},icon:Icon(Icons.menu))
            ],
          ),
-         floatingActionButton: FloatingActionButton(onPressed: () async {
+         floatingActionButton: FloatingActionButton(backgroundColor: Colors.red,elevation: 8,onPressed: () async {
            _cart = Cart(widget.currentProduct.getId!,1,widget.currentProduct.getSalePrice! == 0 ? widget.currentProduct.getPrice! : widget.currentProduct.getSalePrice!,_selectSize == null ? "" : _selectSize,_selectColor == null ? "" : _selectColor.toString());
             for(int i= 0 ; i< snapshot.getListCart.length ; i++){
               if( _cart.getIdProduct == snapshot.getListCart[i].getIdProduct && _cart.getColor == snapshot.getListCart[i].getColor && _cart.getSize == snapshot.getListCart[i].getSize){
@@ -73,7 +84,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
            DatabaseService(snapshot.getListInfoUser!.uid).updateCart(_cart);
            Navigator.of(context).pop();
            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Add Cart Success")));
-         }, child:Icon(Icons.add_shopping_cart,size: 30,)),
+         }, child:Icon(Icons.add_shopping_cart,size: 30,color: StrakColor.colorTheme6,)),
          floatingActionButtonLocation: FloatingActionButtonLocation.miniEndFloat,
          body: SafeArea(child: CustomScrollView(
            slivers: [
@@ -244,9 +255,24 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                  ),
                  SizedBox(height: 10,),
                  Container(
-                   child: ElevatedButton(onPressed: (){}, child: Text("Buy Now",style: TextStyle(
+                   child: ElevatedButton(style: ButtonStyle(
+                       backgroundColor: MaterialStateProperty.all(StrakColor.colorTheme7)
+                   ),onPressed: () async {
+                     _cart = Cart(widget.currentProduct.getId!,1,widget.currentProduct.getSalePrice! == 0 ? widget.currentProduct.getPrice! : widget.currentProduct.getSalePrice!,_selectSize == null ? "" : _selectSize,_selectColor == null ? "" : _selectColor.toString());
+                     for(int i= 0 ; i< snapshot.getListCart.length ; i++){
+                       if( _cart.getIdProduct == snapshot.getListCart[i].getIdProduct && _cart.getColor == snapshot.getListCart[i].getColor && _cart.getSize == snapshot.getListCart[i].getSize){
+                         _cart.amount = snapshot.getListCart[i].getAmount! +1;
+                         DatabaseService(snapshot.getListInfoUser!.uid).removeCart(snapshot.getListCart[i]);
+                         break;
+                       }
+                     }
+                     DatabaseService(snapshot.getListInfoUser!.uid).updateCart(_cart);
+                     snapshot.setSelectIndex = 2;
+                     Navigator.of(context).pop();
+
+                   }, child: Text("Buy Now",style: TextStyle(
                        fontWeight: FontWeight.bold,
-                       fontSize: 14,
+                       fontSize: 16,
                        color: Colors.white
                    ),)),
                  )

@@ -48,10 +48,17 @@ dependencies:
   flutter_colorpicker: ^1.0.3
   rxdart: ^0.27.5
   intl: ^0.17.0
+  country_code_picker: ^2.0.2
+  syncfusion_flutter_gauges: ^20.3.50
+  badges: ^2.0.3
+  path_provider: ^2.0.11
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_native_splash: ^2.2.12
+
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -64,6 +71,11 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+flutter_native_splash:
+  image: assets/images_app/logo_strak.png
+  color: "#f9f9f9"
+
+
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -76,8 +88,12 @@ flutter:
      - assets/images_app/logo_strak.png
      - assets/images_app/logo_fb.png
      - assets/images_app/logo_gg.png
+     - assets/images_app/logo_strak_full_red.png
+     - assets/images_app/logo_strak_red.png
+     - assets/images_app/logo_strak_white.png
      - assets/images_app/test.png
      - assets/images_app/default_image.png
+     - assets/images_app/favorite_product.png
      - assets/images_wallpaper/slider_image1.png
      - assets/images_wallpaper/slider_image2.png
      - assets/images_wallpaper/slider_image3.png
