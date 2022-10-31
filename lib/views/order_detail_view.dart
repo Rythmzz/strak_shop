@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +13,6 @@ import '../models/cart.dart';
 import '../models/product.dart';
 import '../models/product_model.dart';
 import '../services/colors.dart';
-
 class OrderView extends StatelessWidget{
  String currentUserUid;
  List<Order> _currentListOrder = [];
@@ -79,12 +77,10 @@ class OrderView extends StatelessWidget{
             ],
           ),
         )
-
         ),
       );
     },);
   }
-
 }
 class OrderDetail extends StatelessWidget{
   final Order currentOrder;

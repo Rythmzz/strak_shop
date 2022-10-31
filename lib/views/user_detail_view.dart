@@ -7,8 +7,96 @@ import 'package:provider/provider.dart';
 import 'package:strak_shop_project/models/info_user_model.dart';
 import 'package:strak_shop_project/services/database.dart';
 
+import '../services/auth.dart';
 import '../services/colors.dart';
 import '../services/storage_repository.dart';
+import 'order_detail_view.dart';
+
+class DetailUserPage extends StatelessWidget{
+  final AuthService _authService = AuthService();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<InfoUserModel>(builder: (context,snapshot,_){
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => UserDetailView()));
+            },
+            child: ListTile(
+              title: Text("Profile",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),),
+              leading: Icon(Icons.account_circle,color: Colors.lightBlueAccent,),
+            ),
+          ),
+          Divider(height: 3,color: StrakColor.colorTheme6),
+          InkWell(
+            onTap: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => OrderView(currentUserUid: snapshot.getListInfoUser!.uid,)));
+            },
+            child: ListTile(
+              title: Text("Order",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),),
+              leading: Icon(Icons.sticky_note_2_outlined,color: Colors.lightBlueAccent,),
+            ),
+          ),
+          Divider(height: 3,color: StrakColor.colorTheme6),
+          InkWell(
+            onTap: (){
+              showDialog(context: context, builder: (context) => AlertDialog(
+                title: Text("Log out"),
+                content: Container(
+                  width: 100,
+                  height: 100,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text("Are you sure you want to log out?"),
+                      SizedBox(height: 10,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ElevatedButton(onPressed: (){
+                            Navigator.of(context).dispose();
+                          }, child: Text("Cancel")),
+                          ElevatedButton(onPressed: (){
+                            Navigator.of(context).pop();
+                            _authService.signOut();
+                          }, child: Text("OK"))
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+
+              ));
+            },
+            child: ListTile(
+              title: Text("Sign Out",style: TextStyle(
+                color: StrakColor.colorTheme7,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),),
+              leading: Icon(Icons.exit_to_app,color: Colors.lightBlueAccent,),
+            ),
+          ),
+
+
+        ],
+      );
+    });
+  }
+
+}
 
 class UserDetailView extends StatelessWidget{
   final now = DateTime.now();

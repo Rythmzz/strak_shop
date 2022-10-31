@@ -56,7 +56,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_native_splash: ^2.2.12
 
 
 
@@ -71,9 +70,6 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
-flutter_native_splash:
-  image: assets/images_app/logo_strak.png
-  color: "#f9f9f9"
 
 
 flutter:

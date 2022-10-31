@@ -47,10 +47,6 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
   }
 
-
-
-
-
   String? validateAccount (String? input){
       if (input!.isEmpty){
         setState(() {
@@ -111,12 +107,11 @@ class _LoginPageState extends State<LoginPage> {
          ),
           Visibility(visible: _loadingPage == true ? true : false,
             child: Scaffold(
-              backgroundColor: Colors.red,
               body: Center(
-                child: Container(
-                  width: 100,
-                  height:100,
-                  decoration: ShapeDecoration(shape: CircleBorder(),image: DecorationImage(image: AssetImage("assets/images_app/logo_strak_white.png"),fit: BoxFit.fitWidth)),
+                child: SpinKitThreeBounce(
+                 color: Colors.blue,
+                  size: 50,
+
                 )
                 ),
               ),
