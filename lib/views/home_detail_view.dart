@@ -249,7 +249,7 @@ class _DetailHomePageState extends State<DetailHomePage> {
       });
     }).toList() , options: CarouselOptions( height: 206,
         viewportFraction: 1,
-        autoPlay: false,
+        autoPlay: true,
         autoPlayInterval: Duration(seconds: 5),
         autoPlayAnimationDuration: Duration(milliseconds: 800),
         autoPlayCurve: Curves.fastOutSlowIn,
