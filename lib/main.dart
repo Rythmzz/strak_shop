@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:provider/provider.dart';
 import 'package:strak_shop_project/models/category_model.dart';
 import 'package:strak_shop_project/models/info_user_model.dart';
@@ -15,9 +16,10 @@ import 'package:strak_shop_project/views/router_view.dart';
 import 'models/account.dart';
 
 main() async{
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp( MyApp());
+
 }
 
 class MyApp extends StatelessWidget{

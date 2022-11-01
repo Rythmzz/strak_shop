@@ -52,6 +52,7 @@ dependencies:
   syncfusion_flutter_gauges: ^20.3.50
   badges: ^2.0.3
   path_provider: ^2.0.11
+  flutter_native_splash: ^2.2.13
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,8 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+flutter_native_splash:
+  color: "#f59343"
 
 
 flutter:
