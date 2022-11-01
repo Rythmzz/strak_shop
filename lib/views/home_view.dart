@@ -54,6 +54,8 @@ class _HomePageState extends State<HomePage> {
   bool _isSearch = true;
   String _labelPage = "";
   late List<Widget> _selectPage;
+  bool _isExit = false;
+
 
 
   @override
@@ -72,90 +74,105 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Consumer<InfoUserModel>(builder: (context,snapshot,_){
-      return Scaffold(
-        resizeToAvoidBottomInset: true,
-        backgroundColor: Colors.white,
-        appBar: _isSearch ? AppBar(
+      return WillPopScope(
+        onWillPop: () async{
+          if(_isExit == false){
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Press again to exit the screen")));
+            _isExit = true;
+            return false;
+          }
+          else {
+            return true;}
+        },
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
-          title: SizedBox(
-              height: 50,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchProductView()));
-                },
-                child: TextField(
-                  enabled: false,
-                  decoration: InputDecoration(
-                    hintText: "Search Product",
-                    prefixIcon: Icon(Icons.search,color: Theme.of(context).primaryColor,size: 24,),
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3),
+          appBar: _isSearch ? AppBar(
+            backgroundColor: Colors.white,
+            title: SizedBox(
+                height: 50,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchProductView()));
+                    _isExit = false;
+                  },
+                  child: TextField(
+                    enabled: false,
+                    decoration: InputDecoration(
+                      hintText: "Search Product",
+                      prefixIcon: Icon(Icons.search,color: Theme.of(context).primaryColor,size: 24,),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3)
+                      ),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: StrakColor.colorTheme6,width: 3)
+                    style: TextStyle(
+                        fontSize: 14
                     ),
                   ),
-                  style: TextStyle(
-                      fontSize: 14
-                  ),
-                ),
-              )
-          ) ,
-          toolbarHeight: 80,
-          actions: [
-            IconButton(icon: Badge(
-              child: Icon(Icons.favorite_border_outlined),
-              showBadge: snapshot.getListInfoUser?.favorite.length == 0 ? false : true,
-            ),color: Colors.grey,onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductFavoriteView(listID: snapshot.getListInfoUser?.favorite == null ? [] :  snapshot.getListInfoUser!.favorite ,)));
-            },),
-            IconButton(icon: Badge(
-              child: Icon(Icons.notifications_none_outlined),
-            ),color: Colors.grey,onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPageView()));
-            },),
-          ],
+                )
+            ) ,
+            toolbarHeight: 80,
+            actions: [
+              IconButton(icon: Badge(
+                child: Icon(Icons.favorite_border_outlined),
+                showBadge: snapshot.getListInfoUser?.favorite.length == 0 ? false : true,
+              ),color: Colors.grey,onPressed: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductFavoriteView(listID: snapshot.getListInfoUser?.favorite == null ? [] :  snapshot.getListInfoUser!.favorite ,)));
+                _isExit = false;
+              },),
+              IconButton(icon: Badge(
+                child: Icon(Icons.notifications_none_outlined),
+              ),color: Colors.grey,onPressed: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPageView()));
+                _isExit = false;
+              },),
+            ],
 
-        ) : AppBar(
-          backgroundColor: Colors.white,
-          actions: [
-           Container(
-             width: 50,
-             height: 50,
-             decoration: ShapeDecoration(shape: CircleBorder(side: BorderSide(color: StrakColor.colorTheme6,width: 2)),image: DecorationImage(image: AssetImage("assets/images_app/logo_strak_red.png"),fit: BoxFit.fitWidth)),
-           ),
-            SizedBox(width: 30,)
-          ],
-          title: Container(
-            alignment: Alignment.centerLeft,
-            height: 50,
-            child: Text("$_labelPage",style: TextStyle(
-                color: StrakColor.colorTheme7,
-                fontSize: 20,
-                fontWeight: FontWeight.bold
-            ),),
+          ) : AppBar(
+            backgroundColor: Colors.white,
+            actions: [
+             Container(
+               width: 50,
+               height: 50,
+               decoration: ShapeDecoration(shape: CircleBorder(side: BorderSide(color: StrakColor.colorTheme6,width: 2)),image: DecorationImage(image: AssetImage("assets/images_app/logo_strak_red.png"),fit: BoxFit.fitWidth)),
+             ),
+              SizedBox(width: 30,)
+            ],
+            title: Container(
+              alignment: Alignment.centerLeft,
+              height: 50,
+              child: Text("$_labelPage",style: TextStyle(
+                  color: StrakColor.colorTheme7,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold
+              ),),
+            ),
+            toolbarHeight: 80,
+            automaticallyImplyLeading: false,
           ),
-          toolbarHeight: 80,
-          automaticallyImplyLeading: false,
+          floatingActionButton: Visibility(
+            visible:  snapshot.getListInfoUser?.uid ==  "vepLb8PezZPJfAMbVpDNkePTOef1" ? true : false,
+            child: FloatingActionButton(backgroundColor: StrakColor.colorTheme6,onPressed: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (contextr) => CreateNewProducts()));
+              _isExit = false;
+            },child: Icon(Icons.add_business_outlined,size: 30,color: Colors.blueAccent,)),
+          ),
+          body: SafeArea(
+            child:_selectPage.elementAt(snapshot.getSelectIndex) ,
+          ),
+          bottomNavigationBar: BottomNavigationBar(type:BottomNavigationBarType.fixed,items:<BottomNavigationBarItem> [
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined,size: 24),label: "Home",),
+            BottomNavigationBarItem(icon: Icon(Icons.search_outlined,size: 24),label: "Explore"),
+            BottomNavigationBarItem(icon: Badge(badgeContent: Text("${snapshot.getListCart.length}",style: TextStyle(
+              color: Colors.white,
+              fontSize: 12
+            ),),child: Icon(Icons.shopping_cart_outlined),showBadge: snapshot.getListCart.length == 0 ? false : true,),label: "Cart"),
+            BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined,size: 24),label: "Account")
+          ],currentIndex: snapshot.getSelectIndex,selectedItemColor: Theme.of(context).primaryColor,onTap:(val) => handleClickMenu(val,snapshot) ,),
         ),
-        floatingActionButton: Visibility(
-          visible:  snapshot.getListInfoUser?.uid ==  "vepLb8PezZPJfAMbVpDNkePTOef1" ? true : false,
-          child: FloatingActionButton(backgroundColor: StrakColor.colorTheme6,onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (contextr) => CreateNewProducts()));
-          },child: Icon(Icons.add_business_outlined,size: 30,color: Colors.blueAccent,)),
-        ),
-        body: SafeArea(
-          child:_selectPage.elementAt(snapshot.getSelectIndex) ,
-        ),
-        bottomNavigationBar: BottomNavigationBar(type:BottomNavigationBarType.fixed,items:<BottomNavigationBarItem> [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined,size: 24),label: "Home",),
-          BottomNavigationBarItem(icon: Icon(Icons.search_outlined,size: 24),label: "Explore"),
-          BottomNavigationBarItem(icon: Badge(badgeContent: Text("${snapshot.getListCart.length}",style: TextStyle(
-            color: Colors.white,
-            fontSize: 12
-          ),),child: Icon(Icons.shopping_cart_outlined),showBadge: snapshot.getListCart.length == 0 ? false : true,),label: "Cart"),
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle_outlined,size: 24),label: "Account")
-        ],currentIndex: snapshot.getSelectIndex,selectedItemColor: Theme.of(context).primaryColor,onTap:(val) => handleClickMenu(val,snapshot) ,),
       );
     });
   }
