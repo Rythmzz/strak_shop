@@ -102,6 +102,29 @@ class _DetailCartPageState extends State<DetailCartPage> {
                                     ),onPressed: () {
                                       showDialog(context: context, builder: (context) {
                                         return AlertDialog(
+                                          actions: [
+                                            TextButton(onPressed: () {
+                                              Navigator.of(context).pop();
+                                            }, child: Text("Cancel")),
+                                            TextButton(onPressed: () async {
+                                              if(snapshotOr.getListOrder != []){
+                                                _order.id = snapshotOr.getListOrder.last.getId + 1;
+                                              }
+                                              _order.uid = snapshot.getListInfoUser!.uid;
+                                              _order.orderCode = "#TM${_order.getId}";
+                                              _order.orderDate = DateFormat.yMEd().add_jms().format(DateTime.now());
+                                              _order.totalPrice = double.tryParse(snapshot.totalPrice().toStringAsFixed(2))!;
+                                              snapshot.getListCart.forEach((element) {
+                                                String data = json.encode(element);
+                                                _order.addObject(jsonDecode(data));
+                                              });
+                                              await DatabaseService(_order.getUid).createNewOrder(_order.getId, _order.getOrderDate, _order.getOrderCode, _order.getOrderNote, _order.getTotalPrice, _order.getAddress, _order.getOrderDetail);
+                                              await DatabaseService(_order.getUid).removeAllCart();
+                                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Buy Success")));
+                                              Navigator.of(context).pop();
+                                            }, child: Text("Confirm")),
+                                          ],
+                                          elevation: 24,
                                           title: Text("Order Confirmation"),
                                           content: Container(
                                             width: 250,
@@ -124,8 +147,7 @@ class _DetailCartPageState extends State<DetailCartPage> {
                                                         fontSize: 12
                                                     ),
                                                   ),
-                                                  SizedBox(height: 12,)
-                                                  ,
+                                                  SizedBox(height: 12,),
                                                   TextField(
                                                     onChanged: (val) {
                                                       _order.orderNote = val;
@@ -145,32 +167,6 @@ class _DetailCartPageState extends State<DetailCartPage> {
                                                     maxLines: 5,
                                                     maxLength: 100,
                                                   ),
-                                                  Row(
-                                                    mainAxisAlignment: MainAxisAlignment.end,
-                                                    children: [
-                                                      ElevatedButton(onPressed: () {
-                                                        Navigator.of(context).pop();
-                                                      }, child: Text("Cancel")),
-                                                      SizedBox(width: 15,),
-                                                      ElevatedButton(onPressed: () async {
-                                                        if(snapshotOr.getListOrder != []){
-                                                          _order.id = snapshotOr.getListOrder.last.getId + 1;
-                                                        }
-                                                        _order.uid = snapshot.getListInfoUser!.uid;
-                                                        _order.orderCode = "#TM${_order.getId}";
-                                                        _order.orderDate = DateFormat.yMEd().add_jms().format(DateTime.now());
-                                                        _order.totalPrice = double.tryParse(snapshot.totalPrice().toStringAsFixed(2))!;
-                                                        snapshot.getListCart.forEach((element) {
-                                                          String data = json.encode(element);
-                                                          _order.addObject(jsonDecode(data));
-                                                        });
-                                                        await DatabaseService(_order.getUid).createNewOrder(_order.getId, _order.getOrderDate, _order.getOrderCode, _order.getOrderNote, _order.getTotalPrice, _order.getAddress, _order.getOrderDetail);
-                                                        await DatabaseService(_order.getUid).removeAllCart();
-                                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Buy Success")));
-                                                        Navigator.of(context).pop();
-                                                      }, child: Text("Confirm"))
-                                                    ],
-                                                  )
 
                                                 ],
                                               ),

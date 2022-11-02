@@ -225,57 +225,50 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
               child: Chip(label: Text("Add Color"),avatar: CircleAvatar(child: Icon(Icons.add),)),onTap: (){
               showDialog(context: context, builder:(context) => StatefulBuilder(builder: (context,StateSetter setStates){
                 return AlertDialog(
-                  title: Text("Select Your Color"),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        BlockPicker(availableColors: [
-                          Colors.red,
-                          Colors.green,
-                          Colors.amber,
-                          Colors.pinkAccent,
-                          Colors.deepOrange,
-                          Colors.blue,
-                          Colors.brown,
-                          Colors.deepPurple,
-                          Colors.grey,
-                          Colors.blueGrey,
-                          Colors.black,
-                          Colors.white,
-                        ],pickerColor: _currentSelectColor, onColorChanged: (color) {
+                  actions: [
+                    TextButton(onPressed: () {
+                      setState(() {
+                        if(!_product.getListColor!.contains(_currentSelectColor)){
+                          _product.addColor(_currentSelectColor.toString());
+                        }
+                      });
+                      Navigator.of(context).pop(); }, child: Text("Select")),
+                    TextButton(onPressed: () {
+                      showDialog(context: context, builder: (context) => AlertDialog(
+                        actions: [
+                          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text("OK"))
+                        ],
+                        title: Text("Select Color"),
+                        content: ColorPicker(pickerColor: _currentSelectColor, onColorChanged: (color) {
                           setStates(() {
                             _currentSelectColor = color;
-                          });}),
-                        Row(
-                          children: [
-                            Expanded(child: TextButton(onPressed: () {
-                              setState(() {
-                                if(!_product.getListColor!.contains(_currentSelectColor)){
-                                  _product.addColor(_currentSelectColor.toString());
-                                }
-                              });
-                              Navigator.of(context).pop(); }, child: Text("Select"))),
-                            TextButton(onPressed: () {
-                              showDialog(context: context, builder: (context) => AlertDialog(
-                                content: Column(
-                                  children: [
-                                    ColorPicker(pickerColor: _currentSelectColor, onColorChanged: (color) {
-                                      setStates(() {
-                                        _currentSelectColor = color;
-                                      });
-                                    },
-                                    ),
-                                    TextButton(onPressed: () => Navigator.of(context).pop(), child: Text("OK"))
-                                  ],
-                                ),
-                              ));
+                          });
+                        },
+                        ),
+                      ));
 
-                            }, child: Text("Custom Color")),
-                            CircleAvatar(backgroundColor: _currentSelectColor,)
-                          ],
-                        )
-                      ],
-                    ),
+                    }, child: Text("Custom Color")),
+                    CircleAvatar(backgroundColor: _currentSelectColor,)
+                  ],
+                  title: Text("Select Your Color"),
+                  content: SingleChildScrollView(
+                    child: BlockPicker(availableColors: [
+                      Colors.red,
+                      Colors.green,
+                      Colors.amber,
+                      Colors.pinkAccent,
+                      Colors.deepOrange,
+                      Colors.blue,
+                      Colors.brown,
+                      Colors.deepPurple,
+                      Colors.grey,
+                      Colors.blueGrey,
+                      Colors.black,
+                      Colors.white,
+                    ],pickerColor: _currentSelectColor, onColorChanged: (color) {
+                      setStates(() {
+                        _currentSelectColor = color;
+                      });}),
                   ),
                 );
               }));
@@ -327,39 +320,36 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
               child: Chip(label: Text("Add Custom Size"),avatar: CircleAvatar(child: Icon(Icons.add),)),onTap: (){
               showDialog(context: context, builder:(context) => StatefulBuilder(builder: (context,StateSetter setStates){
                 return AlertDialog(
+                  elevation: 24,
+                  actions: [
+                    TextButton(onPressed: (){
+                      Navigator.of(context).pop();
+                    }, child: Text("Cancel")),
+                    TextButton(onPressed: (){
+                      setState(() {
+                        if(!_product.getListSize!.contains(_textEditingControllerSize.text)){
+                          _product.addSize(_textEditingControllerSize.text);
+                        }
+                      });
+                      _textEditingControllerSize.clear();
+                      Navigator.of(context).pop();
+                    }, child: Text("Create"))
+                  ],
                   title: Text("Custom Size Product"),
-                  content: Container(
-                    width: 200,
-                    height: 200,
-                    child: Column(
-                      children: [
-                        TextField(
-                          controller: _textEditingControllerSize,
-                          decoration: InputDecoration(
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
-                            ),
-                            border: OutlineInputBorder(
-                                borderSide: BorderSide(width:3)
-                            ),
-                            prefixIcon: Icon(Icons.drive_file_rename_outline,size: 24,color: _checkNameError ? Colors.red : null,),
-                            hintText: "Enter Size",
-                          ),style: TextStyle(
-                            fontSize: 12
-                        ),
-                        ),
-                        SizedBox(height: 15,),
-                        ElevatedButton(onPressed: (){
-                          setState(() {
-                            if(!_product.getListSize!.contains(_textEditingControllerSize.text)){
-                              _product.addSize(_textEditingControllerSize.text);
-                            }
-                          });
-                          _textEditingControllerSize.clear();
-                          Navigator.of(context).pop();
-                        }, child: Text("Create"))
-                      ],
-                    ),
+                  content: TextField(
+                    controller: _textEditingControllerSize,
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: StrakColor.colorTheme6,width:3)
+                      ),
+                      border: OutlineInputBorder(
+                          borderSide: BorderSide(width:3)
+                      ),
+                      prefixIcon: Icon(Icons.drive_file_rename_outline,size: 24,color: _checkNameError ? Colors.red : null,),
+                      hintText: "Enter Size",
+                    ),style: TextStyle(
+                      fontSize: 12
+                  ),
                   )
                 );
               }));
@@ -546,6 +536,16 @@ class _DialogCreateCategoryState extends State<DialogCreateCategory> {
         }
         return AlertDialog(
           title: Text("Add Category"),
+          elevation: 24,
+          actions: [
+            TextButton(onPressed: (){
+              Navigator.of(context).pop();
+            }, child: Text("Cancel")),
+            TextButton(onPressed: (){
+              StorageRepository().uploadFileImageCategory(_image!,_category.getId ,_textEditingControllerNameCategory.text, _category.getImageName,_category.getGenderStyle);
+              Navigator.of(context).pop();
+            }, child: Text("Create"))
+          ],
           content:Container(
             width: 300,
             height: 300,
@@ -600,20 +600,6 @@ class _DialogCreateCategoryState extends State<DialogCreateCategory> {
                     });
                   },hint: Text("Select Fashion"),value: _selectFashion,icon: Icon(Icons.arrow_drop_down),iconSize: 30,isExpanded: true,underline:  DropdownButtonHideUnderline(child: Container(),),),
                 ),
-                SizedBox(height: 10,),
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.end,
-                 children: [
-                   ElevatedButton(onPressed: (){
-                     Navigator.of(context).pop();
-                   }, child: Text("Cancel")),
-                   SizedBox(width: 20,),
-                   ElevatedButton(onPressed: (){
-                     StorageRepository().uploadFileImageCategory(_image!,_category.getId ,_textEditingControllerNameCategory.text, _category.getImageName,_category.getGenderStyle);
-                     Navigator.of(context).pop();
-                   }, child: Text("Create"))
-                 ],
-               )
               ],
             ),
           ),

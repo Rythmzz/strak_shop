@@ -53,30 +53,18 @@ class DetailUserPage extends StatelessWidget{
           InkWell(
             onTap: (){
               showDialog(context: context, builder: (context) => AlertDialog(
+                elevation: 24,
+                actions: [
+                  TextButton(onPressed: (){
+                    Navigator.of(context).pop();
+                  }, child: Text("No")),
+                  TextButton(onPressed: (){
+                    Navigator.of(context).pop();
+                    _authService.signOut();
+                  }, child: Text("Yes"))
+                ],
                 title: Text("Log out"),
-                content: Container(
-                  width: 100,
-                  height: 100,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text("Are you sure you want to log out?"),
-                      SizedBox(height: 10,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ElevatedButton(onPressed: (){
-                            Navigator.of(context).dispose();
-                          }, child: Text("Cancel")),
-                          ElevatedButton(onPressed: (){
-                            Navigator.of(context).pop();
-                            _authService.signOut();
-                          }, child: Text("OK"))
-                        ],
-                      )
-                    ],
-                  ),
-                ),
+                content: Text("Are you sure you want to log out?"),
 
               ));
             },
