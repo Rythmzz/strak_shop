@@ -223,6 +223,7 @@ class _LoginPageState extends State<LoginPage> {
               });
             }
             else {
+              if(!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Success")));
             }
 
@@ -347,7 +348,7 @@ class _LoginPageState extends State<LoginPage> {
               if(!mounted) return;
 
               setState(() {
-                _loadingPage = result;
+                _loadingPage = result ?? false;
               });
             },
               child: Text("Register",style: TextStyle(

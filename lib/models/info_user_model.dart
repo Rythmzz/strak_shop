@@ -31,11 +31,7 @@ class InfoUserModel extends ChangeNotifier{
   }
 
   double totalPrice(){
-    double total = 0.0;
-    for(int i = 0 ; i < _listCart.length ; i++){
-        total += _listCart[i].getPrice! * _listCart[i].getAmount!;
-    }
-    return total;
+    return _listCart.fold(0.0, (total, cart) => total + cart.total);
   }
 
   InfoUserModel(){
@@ -46,8 +42,12 @@ class InfoUserModel extends ChangeNotifier{
      String? uid;
     _auth.authStateChanges().listen((firebaseUser) async {
       uid =  firebaseUser?.uid;
-      print("UID :$uid");
-      _listInfoUser = await DatabaseService(uid).getInfoUser();
+      try{
+        _listInfoUser = await DatabaseService(uid).getInfoUser();
+      }
+      catch(e){
+        print("InfoUser null");
+      }
       _listCart = await DatabaseService(uid).getListCartFromUser(_listInfoUser!);
       _selectIndex = 0;
       notifyListeners();

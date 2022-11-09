@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:strak_shop_project/services/database.dart';
 
 import '../models/account.dart';
+import '../models/info_user.dart';
 
 class AuthService {
   final _auth = FirebaseAuth.instance;
@@ -32,7 +33,8 @@ class AuthService {
     try{
       final UserCredential result = await _auth.createUserWithEmailAndPassword(email: email , password: password);
       final User? user = result.user;
-      DatabaseService(user!.uid).updateInfoUser(fullName, email, "03/04/2001","","","male", "0",[],[]);
+      InfoUser infoUser = InfoUser(user!.uid, fullName, "male", "01/01/2022","","", email, "0", [], []);
+      DatabaseService(user!.uid).updateInfoUser(infoUser);
       return convertAccount(user);
     }
     catch(e){

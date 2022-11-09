@@ -19,19 +19,32 @@ class InfoUser{
 
   String get fullName => _fullName;
 
-  factory InfoUser.fromDocument(DocumentSnapshot doc){
+  factory InfoUser.fromDocument(DocumentSnapshot doc, Map docdata){
     return InfoUser(
-        doc.data().toString().contains('uid') ? doc.get('uid'): '\$',
-        doc.data().toString().contains('fullname') ? doc.get('fullname'): '\$',
-        doc.data().toString().contains('gender') ? doc.get('gender') : '\$',
-        doc.data().toString().contains('birthday') ? doc.get('birthday') : '\$',
-        doc.data().toString().contains('imageURL') ? doc.get('imageURL') : '\$',
-        doc.data().toString().contains('imageName') ? doc.get('imageName') :'\$',
-        doc.data().toString().contains('email') ? doc.get('email') : '\$',
-        doc.data().toString().contains('phone') ? doc.get('phone') : '\$',
-        doc.data().toString().contains('favorite') ? (doc.get('favorite') as List).map((e) => e as int).toList() : [],
-        doc.data().toString().contains('cart') ? (doc.get('cart') as List).map((e) => e as Map<String,dynamic>).toList() : []);
+         docdata['uid'] ?? '\$',
+        docdata['fullname'] ?? '\$',
+         docdata['gender'] ?? '\$',
+         docdata['birthday'] ?? '\$',
+        docdata['imageURL'] ??  '\$',
+        docdata['imageName'] ?? '\$',
+        docdata['email'] ?? '\$',
+        docdata['phone'] ??'\$',
+        (docdata['favorite'] as List).map((e) => e as int).toList() ?? [],
+        (docdata['cart'] as List).map((e) => e as Map<String,dynamic>).toList() ?? []);
   }
+
+  Map<String,dynamic> toJson() => {
+    'uid' : _uid,
+    'fullname' : _fullName,
+    'email' : _email,
+    'birthday' : _birthDay,
+    'imageURL' : _imageURL,
+    'imageName': _imageName,
+    'gender' : _gender,
+    'phone' : _phone,
+    'favorite' : _favorite,
+    'cart' : _cart
+  };
 
   String get gender => _gender;
 

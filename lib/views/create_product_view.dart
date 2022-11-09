@@ -282,7 +282,6 @@ class _CreateNewProductsState extends State<CreateNewProducts> {
         ),
       ),
     );
-
   }
 
   Widget chipColor(String colorString){

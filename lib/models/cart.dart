@@ -22,14 +22,11 @@ class Cart {
     return Cart(json['idProduct'] as int, json['amount'] as int, json['price'] as double, json['size'] as String, json['color'] as String);
   }
 
-  void printCart(){
-     print(_idProduct);
-     print(_amount);
-     print(_price);
-     print(_size);
-     print(_color);
-
+  @override
+  String toString() {
+    return super.toString();
   }
+  double get total => (_price! * _amount!);
 
   double? get getPrice => _price;
 

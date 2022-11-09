@@ -19,19 +19,10 @@ class DatabaseService{
 
 
   // Trích xuất dữ liệu của User
-  Future updateInfoUser(String fullname, String email, String birthDay,String imageURL,String imageName, String gender, String phoneNumber, List<int> favorite, List<Cart> cart) async{
-    return await _firebaseFirestore.collection('list_user').doc(_uid).set({
-      'uid' : _uid,
-      'fullname' : fullname,
-      'email' : email,
-      'birthday' : birthDay,
-      'imageURL' : imageURL,
-      'imageName': imageName,
-      'gender' : gender,
-      'phone' : phoneNumber,
-      'favorite' : favorite,
-      'cart' : cart
-    });
+  Future updateInfoUser(InfoUser infoUser) async{
+    return await _firebaseFirestore.collection('list_user').doc(_uid).set(
+       infoUser.toJson()
+    );
   }
   Future updateGenderUser(String gender) async {
     return await _firebaseFirestore.collection('list_user').doc(_uid).update(
@@ -113,13 +104,19 @@ class DatabaseService{
 
   // Get List User From Firestore
   Stream<List<InfoUser>> get getListUser {
-    return _firebaseFirestore.collection('list_user').snapshots().map(getListUserFromFirestore);
+    DocumentSnapshot snap = _firebaseFirestore.collection('list_user').doc(_uid).get() as DocumentSnapshot<Object?>;
+    Map docdata = snap.data() as Map;
+    return _firebaseFirestore.collection('list_user').snapshots().map((event) {
+      return event.docs.map((data) {
+        return InfoUser.fromDocument(data,docdata);
+      }).toList();
+    });
      }
-  List<InfoUser> getListUserFromFirestore(QuerySnapshot snapshot) {
-    return snapshot.docs.map((data) {
-      return InfoUser.fromDocument(data);
-    }).toList();
-  }
+  // List<InfoUser> getListUserFromFirestore(QuerySnapshot snapshot) {
+  //   return snapshot.docs.map((data) {
+  //     return InfoUser.fromDocument(data,);
+  //   }).toList();
+  // }
 
   // Stream<List<Category>> get streamListCategoryFirestore{
   //   return _firebaseFirestore.collection('list_category').snapshots().map(transformCategory);
@@ -135,22 +132,27 @@ class DatabaseService{
 // Get Current User With UID
   Future<InfoUser>  currentUserFromFirestore() async {
     DocumentSnapshot snap = await _firebaseFirestore.collection('list_user').doc(_uid).get();
-    return InfoUser.fromDocument(snap);
+    Map docdata = snap.data() as Map;
+    return InfoUser.fromDocument(snap,docdata);
   }
-  Stream<InfoUser> getUser(){
-      return _firebaseFirestore.collection('list_user')
-          .doc(_uid)
-          .snapshots()
-          .map((snap) => InfoUser.fromDocument(snap));
-  }
-  Future<InfoUser> getInfoUser() async {
+
+  // Stream<InfoUser> getUser(){
+  //     return _firebaseFirestore.collection('list_user')
+  //         .doc(_uid)
+  //         .snapshots()
+  //         .map((snap) => InfoUser.fromDocument(snap));
+  // }
+  Future<InfoUser?> getInfoUser() async {
     DocumentSnapshot snapshot = await _firebaseFirestore.collection('list_user')
         .doc(_uid)
         .get();
+    Map? docdata = snapshot.data() as Map<String,dynamic>;
+    if(docdata != null ){
+      final data = InfoUser.fromDocument(snapshot,docdata);
+      return data;
+    }
+    return null;
 
-    final data = InfoUser.fromDocument(snapshot);
-
-    return data;
 
 
   }
