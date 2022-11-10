@@ -19,6 +19,9 @@ class Product {
       this._size,this._imageURL,this._imageName,
       this._idCategory,this._view,this._description);
 
+  Product.createDefault() : _id = 0, _name="",_salePrice=0.0,_color=[],_size =[],_imageURL =["","","","",""],_imageName=["","","","",""],_idCategory =0,_view = 0,_description ="";
+
+
   int promotionPercent(){
     return (100 - (_salePrice!/_price!) * 100).round();
   }

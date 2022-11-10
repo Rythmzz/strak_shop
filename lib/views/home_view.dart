@@ -61,7 +61,20 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
    _selectPage = [
-     DetailHomePage(),
+     Consumer<CategoryModel>(builder: (context,snapshot,_){
+       return Navigator(
+         onGenerateRoute: (setting){
+           Widget page = DetailHomePage();
+           for(int i = 0 ; i < snapshot.getListCategory.length ; i++){
+             if(setting.name == "category/${snapshot.getListCategory[i].getId}"){
+               page = ProductCategoryView(idCategory: snapshot.getListCategory[i].getId, nameCategory: snapshot.getListCategory[i].getName);
+               break;
+             }
+           };
+           return MaterialPageRoute(builder: (context) => page);
+         },
+       );
+     }),
      DetailExplorePage(),
      DetailCartPage(),
      DetailUserPage(),

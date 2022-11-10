@@ -296,18 +296,23 @@ class _DetailHomePageState extends State<DetailHomePage> {
             ],
           ),
         ),
+
         Consumer<CategoryModel>(builder: (context,snapshot,_){
-          return Container(
-            height: 120,
-            child: ListView.builder(itemBuilder: (context,index){
-              return InkWell(onTap: (){
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductCategoryView(idCategory: snapshot.getListCategory[index].getId, nameCategory: snapshot.getListCategory[index].getName)));
-              },child: index <= 10 ? CircleCategory(snapshot.getListCategory[index].getImageURL, snapshot.getListCategory[index].getName) : SizedBox());
-            },itemCount: snapshot.getListCategory.length,padding: EdgeInsets.all(16),scrollDirection: Axis.horizontal),
-          );
+          return _listCatergory(context, snapshot);
         })
       ],
     );
+  }
+  Widget _listCatergory(BuildContext context,CategoryModel snapshot){
+    return Container(
+      height: 120,
+      child: ListView.builder(itemBuilder: (context,index){
+        return InkWell(onTap: (){
+          Navigator.of(context).pushNamed('category/${snapshot.getListCategory[index].getId}');
+        },child: index <= 10 ? CircleCategory(snapshot.getListCategory[index].getImageURL, snapshot.getListCategory[index].getName) : SizedBox());
+      },itemCount: snapshot.getListCategory.length,padding: EdgeInsets.all(16),scrollDirection: Axis.horizontal),
+    );
+
   }
   Widget _buildProductItemFlashSale(BuildContext context, int index){
     return InkWell(

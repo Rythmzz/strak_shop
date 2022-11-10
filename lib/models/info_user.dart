@@ -16,6 +16,8 @@ class InfoUser{
 
   InfoUser(this._uid,this._fullName,this._gender,this._birthDay,this._imageURL,this._imageName,this._email,this._phone,this._favorite,this._cart);
 
+  InfoUser.createDefault(this._uid,this._fullName,this._email) : _gender ="male", _birthDay ="01/01/2022",_imageURL ="",_imageName="",_phone="",_favorite=[],_cart=[];
+
 
   String get fullName => _fullName;
 

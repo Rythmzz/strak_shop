@@ -33,7 +33,7 @@ class AuthService {
     try{
       final UserCredential result = await _auth.createUserWithEmailAndPassword(email: email , password: password);
       final User? user = result.user;
-      InfoUser infoUser = InfoUser(user!.uid, fullName, "male", "01/01/2022","","", email, "0", [], []);
+      InfoUser infoUser = InfoUser.createDefault(user!.uid, fullName, email);
       DatabaseService(user!.uid).updateInfoUser(infoUser);
       return convertAccount(user);
     }

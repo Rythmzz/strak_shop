@@ -26,7 +26,7 @@ class CreateNewProducts extends StatefulWidget{
 
 
 class _CreateNewProductsState extends State<CreateNewProducts> {
-  Product _product = Product(0,"", 0.0, 0.0, [], [], ["","","","",""], ["","","","",""], 0, 0, "");
+  Product _product = Product.createDefault();
 
   Color _currentSelectColor = Colors.red;
 

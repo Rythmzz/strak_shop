@@ -25,6 +25,7 @@ class InfoUserModel extends ChangeNotifier{
 
   int get getSelectIndex => _selectIndex;
 
+
   set setSelectIndex(int val){
     _selectIndex = val;
     notifyListeners();

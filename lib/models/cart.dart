@@ -26,7 +26,7 @@ class Cart {
   String toString() {
     return super.toString();
   }
-  double get total => (_price! * _amount!);
+  double get total => (_price != null || _amount != null) ? 0 : _price! * _amount!;
 
   double? get getPrice => _price;
 
