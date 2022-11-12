@@ -45,11 +45,13 @@ class InfoUserModel extends ChangeNotifier{
       uid =  firebaseUser?.uid;
       try{
         _listInfoUser = await DatabaseService(uid).getInfoUser();
+        _listCart = await DatabaseService(uid).getListCartFromUser(_listInfoUser!);
+        _listCart.toString();
       }
       catch(e){
         print("InfoUser null");
       }
-      _listCart = await DatabaseService(uid).getListCartFromUser(_listInfoUser!);
+
       _selectIndex = 0;
       notifyListeners();
     });

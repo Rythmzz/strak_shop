@@ -1,79 +1,86 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'cart.dart';
 
 class InfoUser{
-  String _uid;
-  String _fullName;
-  String _gender;
-  String _birthDay;
-  String _imageURL;
-  String _imageName;
-  String _email;
-  String _phone;
-  List<int> _favorite;
-  List<Object> _cart;
+  String uid;
+  String fullName;
+  String gender;
+  String birthDay;
+  String imageURL;
+  String imageName;
+  String email;
+  String phone;
+  List<int> favorite;
+  List<Cart> cart;
 
-  InfoUser(this._uid,this._fullName,this._gender,this._birthDay,this._imageURL,this._imageName,this._email,this._phone,this._favorite,this._cart);
-
-  InfoUser.createDefault(this._uid,this._fullName,this._email) : _gender ="male", _birthDay ="01/01/2022",_imageURL ="",_imageName="",_phone="",_favorite=[],_cart=[];
+  InfoUser({required this.uid, required this.fullName, required this.email,this.gender ='male',this.birthDay='01/01/2022',this.imageURL =' ',this.imageName =' ',this.phone =' ',this.favorite = const [],this.cart = const []});
 
 
-  String get fullName => _fullName;
+  String get getFullName => fullName;
 
-  factory InfoUser.fromDocument(DocumentSnapshot doc, Map docdata){
-    return InfoUser(
-         docdata['uid'] ?? '\$',
-        docdata['fullname'] ?? '\$',
-         docdata['gender'] ?? '\$',
-         docdata['birthday'] ?? '\$',
-        docdata['imageURL'] ??  '\$',
-        docdata['imageName'] ?? '\$',
-        docdata['email'] ?? '\$',
-        docdata['phone'] ??'\$',
-        (docdata['favorite'] as List).map((e) => e as int).toList() ?? [],
-        (docdata['cart'] as List).map((e) => e as Map<String,dynamic>).toList() ?? []);
+  factory InfoUser.fromJson(Map<String, dynamic> json) {
+    return InfoUser(uid: json['uid'] ?? ' ', fullName: json['fullname'] ?? ' ', email: json['email'] ??  "",
+    gender: json['male'] ?? '',
+        birthDay: json['birthday']??' ',
+        imageURL: json['imageURL']??' ',
+        phone: json['phone'] ?? ' ',
+        favorite: (json['favorite'].cast<int>() as List<int>) ?? const [],cart:(json['cart'] as List<dynamic>).isEmpty ? [] : Cart.fromJson(json['cart'][0]) as List<Cart> );
   }
 
+  // List<Cart> convertJsonToCart(Map<String,dynamic> json){
+  //   final List<Cart> list = (json['cart'] as List<Object>).map((e) {
+  //     Cart.fromJson(e);
+  //   }).toList();
+  //   return list;
+  //
+  //
+  // }
+
   Map<String,dynamic> toJson() => {
-    'uid' : _uid,
-    'fullname' : _fullName,
-    'email' : _email,
-    'birthday' : _birthDay,
-    'imageURL' : _imageURL,
-    'imageName': _imageName,
-    'gender' : _gender,
-    'phone' : _phone,
-    'favorite' : _favorite,
-    'cart' : _cart
+    'uid' : uid,
+    'fullname' : fullName,
+    'email' : email,
+    'birthday' : birthDay,
+    'imageURL' : imageURL,
+    'imageName': imageName,
+    'gender' : gender,
+    'phone' : phone,
+    'favorite' : favorite,
+    'cart' : cart
   };
 
-  String get gender => _gender;
+  String get getGender => gender;
 
-  String get birthDay => _birthDay;
+  String get getBirthDay => birthDay;
 
-  String get email => _email;
+  String get getEmail => email;
 
-  String get phone => _phone;
+  String get getPhone => phone;
 
-  String get imageUrls => _imageURL;
+  String get getImageURL => imageURL;
 
-  String get imageName => _imageName;
+  String get getImageName => imageName;
 
-  String get uid => _uid;
+  String get getUid => uid;
 
-  List<int> get favorite => _favorite;
+  List<int> get getFavorite => favorite;
 
-  List<Object> get cart => _cart;
+  List<Cart> get getCart => cart;
 
-  void printUser(){
-    print(_uid);
-    print(_fullName);
-    print(_email);
-    print(_gender);
-    print(_birthDay);
-    print(_phone);
-    print(_imageURL);
-    print(_imageName);
+  @override
+  String toString() {
+    return '''
+    uid $uid \n
+    fullName $fullName \n
+    email $email \n
+    gender $gender \n,
+    birthDay $birthDay \n
+    phone $phone \n 
+    imageURL $imageURL \n
+    imageName $imageName \n
+    ''';
   }
 }

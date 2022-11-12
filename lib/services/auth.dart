@@ -32,8 +32,8 @@ class AuthService {
   Future registerAccount(String fullName,String email,String password) async{
     try{
       final UserCredential result = await _auth.createUserWithEmailAndPassword(email: email , password: password);
-      final User? user = result.user;
-      InfoUser infoUser = InfoUser.createDefault(user!.uid, fullName, email);
+      final User user = result.user!;
+      InfoUser infoUser = InfoUser(uid: user.uid,fullName: fullName,email: email);
       DatabaseService(user!.uid).updateInfoUser(infoUser);
       return convertAccount(user);
     }

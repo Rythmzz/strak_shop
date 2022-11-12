@@ -102,16 +102,16 @@ class DatabaseService{
     });
   }
 
-  // Get List User From Firestore
-  Stream<List<InfoUser>> get getListUser {
-    DocumentSnapshot snap = _firebaseFirestore.collection('list_user').doc(_uid).get() as DocumentSnapshot<Object?>;
-    Map docdata = snap.data() as Map;
-    return _firebaseFirestore.collection('list_user').snapshots().map((event) {
-      return event.docs.map((data) {
-        return InfoUser.fromDocument(data,docdata);
-      }).toList();
-    });
-     }
+  // // Get List User From Firestore
+  // Stream<List<InfoUser>> get getListUser {
+  //   DocumentSnapshot snap = _firebaseFirestore.collection('list_user').doc(_uid).get() as DocumentSnapshot<Object?>;
+  //   Map docdata = snap.data() as Map;
+  //   return _firebaseFirestore.collection('list_user').snapshots().map((event) {
+  //     return event.docs.map((data) {
+  //       return InfoUser.fromDocument(data,docdata);
+  //     }).toList();
+  //   });
+  //    }
   // List<InfoUser> getListUserFromFirestore(QuerySnapshot snapshot) {
   //   return snapshot.docs.map((data) {
   //     return InfoUser.fromDocument(data,);
@@ -132,8 +132,8 @@ class DatabaseService{
 // Get Current User With UID
   Future<InfoUser>  currentUserFromFirestore() async {
     DocumentSnapshot snap = await _firebaseFirestore.collection('list_user').doc(_uid).get();
-    Map docdata = snap.data() as Map;
-    return InfoUser.fromDocument(snap,docdata);
+    print(snap.data());
+    return InfoUser.fromJson(snap.data() as Map<String,dynamic>);
   }
 
   // Stream<InfoUser> getUser(){
@@ -146,12 +146,14 @@ class DatabaseService{
     DocumentSnapshot snapshot = await _firebaseFirestore.collection('list_user')
         .doc(_uid)
         .get();
-    Map? docdata = snapshot.data() as Map<String,dynamic>;
-    if(docdata != null ){
-      final data = InfoUser.fromDocument(snapshot,docdata);
-      return data;
-    }
-    return null;
+
+    print(snapshot.data());
+
+
+      final String data = jsonEncode(snapshot.data());
+      return InfoUser.fromJson(json.decode(data));
+
+
 
 
 

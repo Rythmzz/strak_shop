@@ -132,11 +132,11 @@ class UserDetailView extends StatelessWidget{
                           StorageRepository().uploadFileImageAvatar(image!, 'user', snapshot.getListInfoUser!.uid,snapshot.getListInfoUser!.imageName);
                         }
                       },
-                          child: snapshot.getListInfoUser?.imageUrls == "" ? SizedBox(width: 72,height: 72,
+                          child: snapshot.getListInfoUser?.imageURL == "" ? SizedBox(width: 72,height: 72,
                             child: CircleAvatar(
                               child: Icon(Icons.account_circle_outlined),
                             ),
-                          ) : SizedBox(width: 72,height: 72,child: CircleAvatar(backgroundColor: StrakColor.colorTheme6,backgroundImage: CachedNetworkImageProvider(snapshot.getListInfoUser?.imageUrls ?? "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"),))
+                          ) : SizedBox(width: 72,height: 72,child: CircleAvatar(backgroundColor: StrakColor.colorTheme6,backgroundImage: CachedNetworkImageProvider(snapshot.getListInfoUser?.imageURL ?? "https://www.iconpacks.net/icons/2/free-user-icon-3296-thumb.png"),))
                       ),
               SizedBox(width: 20,),
                       Column(
